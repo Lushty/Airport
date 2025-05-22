@@ -19,24 +19,28 @@ public class PassengerController {
 
     public static Response registerPassenger(String id, String firstname, String lastname,  String year, String month, String day, String phoneCode, String phone, String country) {
         try {
-            long idD = Long.parseLong(id);
-            int yearD = Integer.parseInt(year);
+            long idD;
+            // Attempt to parse ID and catch NumberFormatException immediately
+            try {
+                idD = Long.parseLong(id);
+            } catch (NumberFormatException ex) {
+                return new Response("Id must be numeric", Status.BAD_REQUEST);
+            }
+
+            // Validate parsed ID
+            if (idD < 0) {
+                return new Response("Id must be positive", Status.BAD_REQUEST);
+            } else if (idD > 999999999999999L) {
+                return new Response("ID must be max 15 digits", Status.BAD_REQUEST);
+            }
+
+            int yearD = Integer.parseInt(year); // This and other parseInt calls might also need specific error handling
             int monthD = Integer.parseInt(month);
             int dayD = Integer.parseInt(day);
             int phoneCodeD = Integer.parseInt(phoneCode);
             long phoneD = Long.parseLong(phone);
             LocalDate birthDate = LocalDate.of(yearD, monthD, dayD);
-            try {
-                if (idD < 0) {
-                    return new Response("Id must be positive", Status.BAD_REQUEST);
-                } else {
-                    if (idD > 999999999999999L) {
-                        return new Response("ID must be max 15 digits", Status.BAD_REQUEST);
-                    }
-                }
-            } catch (NumberFormatException ex) {
-                return new Response("Id must be numeric", Status.BAD_REQUEST);
-            }
+
             if (firstname.equals("")) {
                 return new Response("Firstname must be not empty", Status.BAD_REQUEST);
             }
@@ -47,7 +51,7 @@ public class PassengerController {
                 return new Response("Country must be not empty", Status.BAD_REQUEST);
             }
 
-            try {
+            try { // This try-catch is for phoneCodeD validation
                 if (phoneCodeD < 0) {
                     return new Response("The PhoneCode must be positive", Status.BAD_REQUEST);
                 } else {
@@ -55,24 +59,39 @@ public class PassengerController {
                         return new Response("The PhoneCode must be max 3 digits", Status.BAD_REQUEST);
                     }
                 }
-            } catch (NumberFormatException ex) {
+            } catch (NumberFormatException ex) { // This seems redundant if phoneCode is parsed before this block
                 return new Response("The PhoneCode must be numeric", Status.BAD_REQUEST);
             }
+            // It's better to catch NumberFormatException for phoneCodeD where it's parsed.
+            // Same for phoneD.
+
             try {
                 if (birthDate.isAfter(LocalDate.now())) {
                     return new Response("The BirthDate must valid", Status.BAD_REQUEST);
                 }
-            } catch (DateTimeParseException ex) {
+            } catch (DateTimeParseException ex) { // This catch is for birthDate validation after LocalDate.of
                 return new Response("The birthDate must be Date", Status.BAD_REQUEST);
             }
+            // Consider catching DateTimeException from LocalDate.of if invalid year/month/day are provided
+
             Storage storage = Storage.getInstance();
             if (!storage.addPassenger(new Passenger( idD,firstname, lastname, birthDate, phoneCodeD, phoneD, country))) {
                 return new Response("A passenger with that id already registered", Status.BAD_REQUEST);
             }
             return new Response("Passenger registered successfully", Status.CREATED);
-        } catch (Exception ex) {
-            return new Response("Unexpected error", Status.INTERNAL_SERVER_ERROR);
-        }
 
+        } catch (NumberFormatException ex) {
+            // This will now catch NumberFormatExceptions from year, month, day, phoneCode, phone parsing
+            // if they are not handled more specifically above.
+            // For a more user-friendly message, each parse operation should have its own try-catch.
+            // For example, if year is "abc", it will be caught here.
+            return new Response("Ensure all numeric fields (year, month, day, phone code, phone) are valid numbers.", Status.BAD_REQUEST);
+        } catch (DateTimeParseException ex) {
+             return new Response("Invalid date format for birth date.", Status.BAD_REQUEST);
+        }
+         catch (Exception ex) {
+            // Log the exception for debugging: ex.printStackTrace();
+            return new Response("Unexpected error: " + ex.getMessage(), Status.INTERNAL_SERVER_ERROR);
+        }
     }
- }
+}

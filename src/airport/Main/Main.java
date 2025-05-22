@@ -4,6 +4,7 @@
  */
 package airport.Main;
 
+import airport.Core.Model.Storage.Storage;
 import airport.Core.View.AirportFrame;
 import com.formdev.flatlaf.FlatDarkLaf;
 import javax.swing.UIManager;
@@ -15,6 +16,7 @@ import javax.swing.UIManager;
 public class Main {
     public static void main(String args[]) {
         System.setProperty("flatlaf.useNativeLibrary", "false");
+        Storage.getInstance().initializeData();
 
         try {
             UIManager.setLookAndFeel(new FlatDarkLaf());
