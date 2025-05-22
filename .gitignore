@@ -1,1 +1,13 @@
+/build/
+*.class/
+nbbuild/
+/dist/
+/nbdist/
+*.nbattrs
+/nbproject/genfiles.properties #
 nbproject/private/
+*.log
+*.tmp
+*.bak
+
+
