@@ -9,5 +9,7 @@ package airport.Core.Controller;
  * @author nxq
  */
 public class LocationController {
-    
+    public boolean createLocation(){
+        return true;
+    }
 }

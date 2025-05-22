@@ -1,4 +1,11 @@
+*.class/
+nbbuild/
+/dist/
+/nbdist/
+*.nbattrs
+/nbproject/genfiles.properties #
 nbproject/private/
+<<<<<<< HEAD
 /build/
 *.class
 /nbbuild/
@@ -9,3 +16,8 @@ nbproject/private/
 *.log
 *.tmp
 *.bak
+=======
+
+
+
+>>>>>>> Ricardo
