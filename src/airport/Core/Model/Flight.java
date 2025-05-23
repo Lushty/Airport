@@ -35,28 +35,51 @@ public class Flight {
         this.departureDate = departureDate;
         this.hoursDurationArrival = hoursDurationArrival;
         this.minutesDurationArrival = minutesDurationArrival;
+        this.scaleLocation = null; // Explicitly null
+        this.hoursDurationScale = 0;   // No scale, so duration is 0
+        this.minutesDurationScale = 0; // No scale, so duration is 0
         
-        this.plane.addFlight(this);
+        if (this.plane != null) {
+            this.plane.addFlight(this);
+        }
     }
 
+    // Constructor for flights with a scale
     public Flight(String id, Plane plane, Location departureLocation, Location scaleLocation, Location arrivalLocation, LocalDateTime departureDate, int hoursDurationArrival, int minutesDurationArrival, int hoursDurationScale, int minutesDurationScale) {
         this.id = id;
         this.passengers = new ArrayList<>();
         this.plane = plane;
         this.departureLocation = departureLocation;
-        this.scaleLocation = scaleLocation;
+        this.scaleLocation = scaleLocation; // Assigned
         this.arrivalLocation = arrivalLocation;
         this.departureDate = departureDate;
-        this.hoursDurationArrival = hoursDurationArrival;
+        this.hoursDurationArrival = hoursDurationArrival; // This would be duration of the second leg (scale to arrival)
         this.minutesDurationArrival = minutesDurationArrival;
-        this.hoursDurationScale = hoursDurationScale;
+        this.hoursDurationScale = hoursDurationScale;     // Duration of stop at scale
         this.minutesDurationScale = minutesDurationScale;
+        // Note: The interpretation of hoursDurationArrival/minutesDurationArrival needs to be consistent.
+        // If it's total flight time EXCLUDING stopover, then the constructor logic is more complex.
+        // If it's per-leg, then the current model is okay, but calculateArrivalDate needs to be very clear.
+        // Based on the provided JSON, it seems "hoursDurationArrival" might be total travel time excluding layover.
+        // For now, I'll assume hoursDurationArrival/minutesDurationArrival is the duration of the *final leg* if there's a scale,
+        // or total duration if no scale. The problem description implies "tiempo del vuelo" as a whole.
+        // Let's assume the current fields are:
+        // hoursDurationArrival/minutesDurationArrival = total travel time in air (sum of legs)
+        // hoursDurationScale/minutesDurationScale = layover time at scale location
         
-        this.plane.addFlight(this);
+        if (this.plane != null) {
+            this.plane.addFlight(this);
+        }
     }
     
-    public void addPassenger(Passenger passenger) {
-        this.passengers.add(passenger);
+    public void addPassenger(Passenger passenger){
+        if (!this.passengers.contains(passenger)){
+            this.passengers.add(passenger);
+        }
+    }
+    
+    public ArrayList<Passenger> getPassengers(){
+        return this.passengers;
     }
     
     public String getId() {
@@ -79,19 +102,19 @@ public class Flight {
         return departureDate;
     }
 
-    public int getHoursDurationArrival() {
+    public int getHoursDurationArrival() { // Represents travel time (potentially sum of legs)
         return hoursDurationArrival;
     }
 
-    public int getMinutesDurationArrival() {
+    public int getMinutesDurationArrival() { // Represents travel time (potentially sum of legs)
         return minutesDurationArrival;
     }
 
-    public int getHoursDurationScale() {
+    public int getHoursDurationScale() { // Represents layover time
         return hoursDurationScale;
     }
 
-    public int getMinutesDurationScale() {
+    public int getMinutesDurationScale() { // Represents layover time
         return minutesDurationScale;
     }
 
@@ -103,8 +126,17 @@ public class Flight {
         this.departureDate = departureDate;
     }
     
+    /**
+     * Calculates the final arrival date.
+     * If there's a scale, it adds the travel time and the scale layover time.
+     * If no scale, it just adds the travel time.
+     */
     public LocalDateTime calculateArrivalDate() {
-        return departureDate.plusHours(hoursDurationScale).plusHours(hoursDurationArrival).plusMinutes(minutesDurationScale).plusMinutes(minutesDurationArrival);
+        LocalDateTime arrival = departureDate.plusHours(hoursDurationArrival).plusMinutes(minutesDurationArrival);
+        if (scaleLocation != null) { // If there was a scale, add the layover time as well
+            arrival = arrival.plusHours(hoursDurationScale).plusMinutes(minutesDurationScale);
+        }
+        return arrival;
     }
     
     public void delay(int hours, int minutes) {

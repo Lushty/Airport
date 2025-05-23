@@ -5,7 +5,7 @@
 package airport.Core.Model.Storage;
 
 import airport.Core.Model.DataLoader.DataLoader;
-import airport.Core.Model.Flight;
+import  airport.Core.Model.Flight;
 import airport.Core.Model.Location;
 import airport.Core.Model.Passenger;
 import airport.Core.Model.Plane;

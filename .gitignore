@@ -5,8 +5,19 @@ nbbuild/
 *.nbattrs
 /nbproject/genfiles.properties #
 nbproject/private/
+<<<<<<< HEAD
+/build/
+*.class
+/nbbuild/
+/dist/
+/nbdist/
+*.nbattrs
+/nbproject/genfiles.properties #
 *.log
 *.tmp
 *.bak
+=======
 
 
+
+>>>>>>> Ricardo
