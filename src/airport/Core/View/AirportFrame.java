@@ -36,7 +36,6 @@ public class AirportFrame extends javax.swing.JFrame {
 
     public AirportFrame() {
         initComponents();
-
         this.setBackground(new Color(0, 0, 0, 0));
         this.setLocationRelativeTo(null);
 
@@ -44,8 +43,17 @@ public class AirportFrame extends javax.swing.JFrame {
         this.generateDays();
         this.generateHours();
         this.generateMinutes();
-        this.blockPanels();
+        // populateComboBoxes() se llama antes de configurar el estado de las pestañas
         populateComboBoxes();
+
+        // Quitar o reevaluar blockPanels() si su lógica entra en conflicto.
+        // blockPanels(); 
+        // Establecer estado inicial de UI (ejemplo: rol User por defecto, sin pasajero seleccionado)
+        this.user.setSelected(true); // Asegura que el radio button user esté seleccionado
+        this.administrator.setSelected(false);
+        userActionPerformed(null); // Establece el estado de las pestañas para el rol de usuario sin un ID de pasajero específico
+        // userSelectActionPerformed(null) se llamará desde userActionPerformed
+
     }
 
     private void populateComboBoxes() {
@@ -1473,30 +1481,30 @@ public class AirportFrame extends javax.swing.JFrame {
     private void administratorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_administratorActionPerformed
         if (user.isSelected()) {
             user.setSelected(false);
-            userSelect.setSelectedIndex(0);
-
+            userSelect.setSelectedIndex(0); // Restablecer JComboBox de usuario
+            addFlightID.setText("");      // Limpiar campo de ID para "Add to flight"
+            updateID.setText("");         // Limpiar campo de ID para "Update info"
         }
+        // Habilitar todas las pestañas de administrador
         for (int i = 1; i < myFlightsTable.getTabCount(); i++) {
             myFlightsTable.setEnabledAt(i, true);
         }
-        myFlightsTable.setEnabledAt(5, false);
-        myFlightsTable.setEnabledAt(6, false);
+        // Deshabilitar pestañas específicas de usuario
+        myFlightsTable.setEnabledAt(5, false); // "Update info" (Índice 5)
+        myFlightsTable.setEnabledAt(6, false); // "Add to flight" (Índice 6)
+        myFlightsTable.setEnabledAt(7, false); // "Show my flights" (Índice 7)
+
     }//GEN-LAST:event_administratorActionPerformed
 
     private void userActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_userActionPerformed
         if (administrator.isSelected()) {
             administrator.setSelected(false);
         }
+        // Deshabilitar todas las pestañas por defecto cuando se selecciona "User"
+        // excepto la primera (Administration)
         for (int i = 1; i < myFlightsTable.getTabCount(); i++) {
-
             myFlightsTable.setEnabledAt(i, false);
-
         }
-        myFlightsTable.setEnabledAt(9, true);
-        myFlightsTable.setEnabledAt(5, true);
-        myFlightsTable.setEnabledAt(6, true);
-        myFlightsTable.setEnabledAt(7, true);
-        myFlightsTable.setEnabledAt(11, true);
     }//GEN-LAST:event_userActionPerformed
 
     private void passengerCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_passengerCreateActionPerformed
@@ -1740,35 +1748,35 @@ public class AirportFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_addFlightActionPerformed
 
     private void delayCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_delayCreateActionPerformed
-String flightId = delayID.getSelectedItem().toString();
-    String hoursStr = delayHour.getSelectedItem().toString();
-    String minutesStr = delayMinute.getSelectedItem().toString();
+        String flightId = delayID.getSelectedItem().toString();
+        String hoursStr = delayHour.getSelectedItem().toString();
+        String minutesStr = delayMinute.getSelectedItem().toString();
 
-    // Similar a flightCreateActionPerformed, manejar valores por defecto de JComboBox
-    if ("ID".equals(flightId)) {
-        flightId = null;
-    }
-    if ("Hour".equals(hoursStr)) {
-        hoursStr = null;
-    }
-    if ("Minute".equals(minutesStr)) {
-        minutesStr = null;
-    }
+        // Similar a flightCreateActionPerformed, manejar valores por defecto de JComboBox
+        if ("ID".equals(flightId)) {
+            flightId = null;
+        }
+        if ("Hour".equals(hoursStr)) {
+            hoursStr = null;
+        }
+        if ("Minute".equals(minutesStr)) {
+            minutesStr = null;
+        }
 
-    Response response = FlightController.delayFlight(flightId, hoursStr, minutesStr);
+        Response response = FlightController.delayFlight(flightId, hoursStr, minutesStr);
 
-    if (response.getStatus() >= 500) {
-        JOptionPane.showMessageDialog(this, response.getMessage(), "Error " + response.getStatus(), JOptionPane.ERROR_MESSAGE);
-    } else if (response.getStatus() >= 400) {
-        JOptionPane.showMessageDialog(this, response.getMessage(), "Warning " + response.getStatus(), JOptionPane.WARNING_MESSAGE);
-    } else { // Status.OK
-        JOptionPane.showMessageDialog(this, response.getMessage(), "Success", JOptionPane.INFORMATION_MESSAGE);
-        delayID.setSelectedIndex(0);
-        delayHour.setSelectedIndex(0);
-        delayMinute.setSelectedIndex(0);
-        // No es necesario llamar a populateComboBoxes() a menos que el retraso cambie algo en los combos.
-        // Podrías querer refrescar la tabla de vuelos si está visible.
-    }
+        if (response.getStatus() >= 500) {
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Error " + response.getStatus(), JOptionPane.ERROR_MESSAGE);
+        } else if (response.getStatus() >= 400) {
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Warning " + response.getStatus(), JOptionPane.WARNING_MESSAGE);
+        } else { // Status.OK
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Success", JOptionPane.INFORMATION_MESSAGE);
+            delayID.setSelectedIndex(0);
+            delayHour.setSelectedIndex(0);
+            delayMinute.setSelectedIndex(0);
+            // No es necesario llamar a populateComboBoxes() a menos que el retraso cambie algo en los combos.
+            // Podrías querer refrescar la tabla de vuelos si está visible.
+        }
 
     }//GEN-LAST:event_delayCreateActionPerformed
 
@@ -1833,15 +1841,75 @@ String flightId = delayID.getSelectedItem().toString();
 
     private void userSelectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_userSelectActionPerformed
         try {
-            String id = userSelect.getSelectedItem().toString();
-            if (!id.equals(userSelect.getItemAt(0))) {
-                updateID.setText(id);
-                addFlightID.setText(id);
+            String selectedUserId = userSelect.getSelectedItem().toString();
+            boolean isActualUserSelected = !selectedUserId.equals("Select User") && user.isSelected();
+
+            // Habilitar/deshabilitar pestañas basadas en la selección de usuario
+            myFlightsTable.setEnabledAt(5, isActualUserSelected); // "Update info" (Índice 5)
+            myFlightsTable.setEnabledAt(6, isActualUserSelected); // "Add to flight" (Índice 6)
+            myFlightsTable.setEnabledAt(7, isActualUserSelected); // "Show my flights" (Índice 7)
+
+            if (isActualUserSelected) {
+                updateID.setText(selectedUserId);
+                addFlightID.setText(selectedUserId);
             } else {
                 updateID.setText("");
                 addFlightID.setText("");
+                if (user.isSelected()) { // Si el rol es usuario pero no hay un ID seleccionado
+                    // Mantener deshabilitadas las pestañas que requieren un ID
+                    myFlightsTable.setEnabledAt(5, false);
+                    myFlightsTable.setEnabledAt(6, false);
+                    myFlightsTable.setEnabledAt(7, false);
+                }
             }
+
+            // Pestañas que el rol "User" podría ver independientemente de un ID específico (si aplica)
+            // Asegúrate de que esto esté alineado con la lógica de userActionPerformed
+            if (user.isSelected()) {
+                // Ejemplo: Habilitar "Show all flights" y "Show all locations" si el rol es User
+                // myFlightsTable.setEnabledAt(9, true);  // Show all flights
+                // myFlightsTable.setEnabledAt(11, true); // Show all locations
+                // Estas ya estaban habilitadas en tu código de userActionPerformed,
+                // pero si dependen de un ID de usuario, deben estar dentro del if(isActualUserSelected)
+                // Si son generales para el rol "User", está bien aquí.
+
+                // Según tu código original, estas dos se habilitaban en userActionPerformed:
+                // myFlightsTable.setEnabledAt(9, true); // Show all flights (índice 9)
+                // myFlightsTable.setEnabledAt(11, true); // Delay Flight (índice 12) o Show All Locations (índice 11)
+                // tu userActionPerformed original decía 11, que es Show all Locations.
+                // y también 9 (Show all flights)
+                // Vamos a mantener la lógica que tenías, pero considera si esto es lo deseado.
+                myFlightsTable.setEnabledAt(8, true); // Show all passengers (Índice 8) (Esta la tenías como 7 en tu código original, pero 7 es "Show my flights")
+                // Revisando tu userActionPerformed, tenías:
+                // myFlightsTable.setEnabledAt(9, true); -> Show all flights
+                // myFlightsTable.setEnabledAt(5, true); -> Update info
+                // myFlightsTable.setEnabledAt(6, true); -> Add to flight
+                // myFlightsTable.setEnabledAt(7, true); -> Show my flights
+                // myFlightsTable.setEnabledAt(11, true); -> Show all locations
+                // La habilitación de 5, 6, 7 ya se hace arriba basado en isActualUserSelected.
+                // Habilitaremos las otras que tenías para el rol usuario.
+                myFlightsTable.setEnabledAt(9, true);  // Show all flights (Índice 9)
+                myFlightsTable.setEnabledAt(11, true); // Show all locations (Índice 11)
+                // myFlightsTable.setEnabledAt(12, true); // Delay Flight (Índice 12) ¿Debería estar aquí? En tu userActionPerformed original no estaba para el usuario.
+
+            }
+
+        } catch (NullPointerException e) {
+            // Esto puede ocurrir si userSelect.getSelectedItem() es null al inicio.
+            // Normalmente no debería pasar si el modelo tiene al menos un item.
+            myFlightsTable.setEnabledAt(5, false);
+            myFlightsTable.setEnabledAt(6, false);
+            myFlightsTable.setEnabledAt(7, false);
+            updateID.setText("");
+            addFlightID.setText("");
         } catch (Exception e) {
+            // Manejar otras posibles excepciones, por ejemplo, si el JComboBox está vacío.
+            System.err.println("Error en userSelectActionPerformed: " + e.getMessage());
+            myFlightsTable.setEnabledAt(5, false);
+            myFlightsTable.setEnabledAt(6, false);
+            myFlightsTable.setEnabledAt(7, false);
+            updateID.setText("");
+            addFlightID.setText("");
         }
     }//GEN-LAST:event_userSelectActionPerformed
 
