@@ -50,7 +50,7 @@ public class AirportFrame extends javax.swing.JFrame {
         // Quitar o reevaluar blockPanels() si su lógica entra en conflicto.
         // blockPanels(); 
         // Establecer estado inicial de UI (ejemplo: rol User por defecto, sin pasajero seleccionado)
-        this.user.setSelected(true); // Asegura que el radio button user esté seleccionado
+        this.user.setSelected(false); // Asegura que el radio button user esté seleccionado
         this.administrator.setSelected(false);
         userActionPerformed(null); // Establece el estado de las pestañas para el rol de usuario sin un ID de pasajero específico
         // userSelectActionPerformed(null) se llamará desde userActionPerformed

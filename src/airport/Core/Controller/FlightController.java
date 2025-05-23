@@ -197,14 +197,17 @@ public class FlightController {
     }
 
     public static Response delayFlight(String flightId, String hoursStr, String minutesStr) {
-        if (flightId == null) {
+        if (flightId == null || flightId.trim().isEmpty() || flightId.equals("ID")) { //
             return new Response("Flight ID must be selected to apply delay.", Status.BAD_REQUEST);
         }
 
         int hours, minutes;
         try {
-            if (hoursStr == null || minutesStr == null) {
-                return new Response("Delay hours and minutes are required.", Status.BAD_REQUEST);
+            if (hoursStr == null || hoursStr.trim().isEmpty() || hoursStr.equals("Hour")) { //
+                return new Response("Delay hours are required and must be a number.", Status.BAD_REQUEST);
+            }
+            if (minutesStr == null || minutesStr.trim().isEmpty() || minutesStr.equals("Minute")) { //
+                return new Response("Delay minutes are required and must be a number.", Status.BAD_REQUEST);
             }
             hours = Integer.parseInt(hoursStr);
             minutes = Integer.parseInt(minutesStr);
@@ -221,21 +224,13 @@ public class FlightController {
             return new Response("Delay hours and minutes must be valid numbers.", Status.BAD_REQUEST);
         }
 
-        Storage storage = Storage.getInstance();
-        Flight flightToDelay = storage.getFlights().stream()
-                .filter(f -> f.getId().equals(flightId))
-                .findFirst()
-                .orElse(null);
-
-        if (flightToDelay == null) {
-            return new Response("Flight with ID '" + flightId + "' not found (must be a valid flight).", Status.NOT_FOUND);
-        }
-
-        try {
-            flightToDelay.delay(hours, minutes);
+        Storage storage = Storage.getInstance(); //
+        if (storage.delayFlightInStorage(flightId, hours, minutes)) {
             return new Response("Flight " + flightId + " delayed successfully by " + hours + "h " + minutes + "m.", Status.OK);
-        } catch (Exception ex) {
-            return new Response("Unexpected error delaying flight: " + ex.getMessage(), Status.INTERNAL_SERVER_ERROR);
+        } else {
+            // El mensaje de error específico ya se imprime desde Storage
+            return new Response("Flight with ID '" + flightId + "' not found or an error occurred during delay.", Status.NOT_FOUND);
         }
     }
 }
+

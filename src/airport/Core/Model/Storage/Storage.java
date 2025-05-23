@@ -5,7 +5,7 @@
 package airport.Core.Model.Storage;
 
 import airport.Core.Model.DataLoader.DataLoader;
-import  airport.Core.Model.Flight;
+import airport.Core.Model.Flight;
 import airport.Core.Model.Location;
 import airport.Core.Model.Passenger;
 import airport.Core.Model.Plane;
@@ -51,7 +51,7 @@ public class Storage {
         this.flights = loader.loadFlights(flightsPath, this.planes, this.locations); //
     }
 
-    public boolean addPassenger(Passenger x) { 
+    public boolean addPassenger(Passenger x) { // Ya retorna boolean
         for (Passenger passenger : this.passengers) {
             if (x.getId() == passenger.getId()) {
                 System.err.println("Storage: Passenger with ID " + x.getId() + " already exists.");
@@ -73,7 +73,7 @@ public class Storage {
                 try {
                     clonedPlanes.add(plane.clone());
                 } catch (Exception e) { // Object.clone() es protected, pero nuestro Plane.clone() es public
-                                        // y maneja CloneNotSupportedException internamente.
+                    // y maneja CloneNotSupportedException internamente.
                     System.err.println("Error al clonar Plane con ID " + plane.getId() + ": " + e.getMessage());
                     // Decide cómo manejar el error: no añadir, añadir null, o añadir el original (menos seguro)
                 }
@@ -133,49 +133,223 @@ public class Storage {
         return clonedFlights;
     }
 
-    // Métodos para añadir individuales (ejemplos)
-    public void addPlane(Plane plane) {
-        boolean exists = false;
+    public boolean addPlane(Plane plane) { // Cambiar para retornar boolean
         for (Plane p : this.planes) {
             if (p.getId().equals(plane.getId())) {
-                exists = true;
-                break;
+                System.err.println("Storage: Plane with ID " + plane.getId() + " already exists. Not added.");
+                return false; // Indicar que no se añadió
             }
         }
-        if (!exists) {
-            this.planes.add(plane);
-        } else {
-            System.err.println("Storage: Plane with ID " + plane.getId() + " already exists. Not added.");
-        }
+        this.planes.add(plane);
+        return true; // Indicar que se añadió
     }
 
-    public void addLocation(Location location) {
-        boolean exists = false;
+    public boolean addLocation(Location location) { // Cambiar para retornar boolean
         for (Location l : this.locations) {
             if (l.getAirportId().equals(location.getAirportId())) {
-                exists = true;
-                break;
+                System.err.println("Storage: Location with Airport ID " + location.getAirportId() + " already exists. Not added.");
+                return false;
             }
         }
-        if (!exists) {
-            this.locations.add(location);
-        } else {
-            System.err.println("Storage: Location with Airport ID " + location.getAirportId() + " already exists. Not added.");
-        }
+        this.locations.add(location);
+        return true;
     }
 
-    public void addFlight(Flight flight) {
-        boolean exists = false;
+    public boolean addFlight(Flight flight) { // Cambiar para retornar boolean
         for (Flight f : this.flights) {
             if (f.getId().equals(flight.getId())) {
-                exists = true;
+                System.err.println("Storage: Flight with ID " + flight.getId() + " already exists. Not added.");
+                return false;
+            }
+        }
+        this.flights.add(flight);
+        // También, si el vuelo se añade, actualizar las listas de vuelos en el avión y pasajeros asociados
+        // Esto ya se maneja en los controladores cuando se añade un pasajero a un vuelo.
+        // Y el DataLoader también asocia los vuelos.
+        // Pero si un vuelo se crea y luego se asocia a un avión,
+        // la lista de vuelos del avión debe actualizarse.
+        // El modelo actual de Flight no añade automáticamente this al plane.flights en el constructor.
+        // Si el Plane es parte del Flight, podemos hacer:
+        if (flight.getPlane() != null) {
+            flight.getPlane().addFlight(flight); // Asegurarse que el objeto Plane en storage sea el que se actualice
+            // o que addFlight en el Plane no opere sobre una copia.
+            // Dado que flight.getPlane() devuelve la referencia directa (no un clon),
+            // y el DataLoader enlaza las referencias originales, esto debería funcionar
+            // si Plane.addFlight() modifica la lista interna de ese Plane.
+        }
+        return true;
+    }
+
+    // --- MÉTODOS DE ACTUALIZACIÓN (NUEVOS) ---
+    /**
+     * Actualiza un pasajero existente en el almacenamiento.
+     *
+     * @param updatedPassenger El pasajero con la información actualizada.
+     * @return true si el pasajero fue encontrado y actualizado, false en caso
+     * contrario.
+     */
+    public boolean updatePassenger(Passenger updatedPassenger) {
+        for (int i = 0; i < this.passengers.size(); i++) {
+            if (this.passengers.get(i).getId() == updatedPassenger.getId()) {
+                // Reemplaza el pasajero original con un clon del pasajero actualizado
+                // para mantener la consistencia si 'updatedPassenger' es una referencia externa.
+                this.passengers.set(i, updatedPassenger.clone());
+                return true;
+            }
+        }
+        System.err.println("Storage: Passenger with ID " + updatedPassenger.getId() + " not found for update.");
+        return false;
+    }
+
+    /**
+     * Actualiza un avión existente en el almacenamiento.
+     *
+     * @param updatedPlane El avión con la información actualizada.
+     * @return true si el avión fue encontrado y actualizado, false en caso
+     * contrario.
+     */
+    public boolean updatePlane(Plane updatedPlane) {
+        for (int i = 0; i < this.planes.size(); i++) {
+            if (this.planes.get(i).getId().equals(updatedPlane.getId())) {
+                this.planes.set(i, updatedPlane.clone());
+                return true;
+            }
+        }
+        System.err.println("Storage: Plane with ID " + updatedPlane.getId() + " not found for update.");
+        return false;
+    }
+
+    /**
+     * Actualiza una ubicación existente en el almacenamiento.
+     *
+     * @param updatedLocation La ubicación con la información actualizada.
+     * @return true si la ubicación fue encontrada y actualizada, false en caso
+     * contrario.
+     */
+    public boolean updateLocation(Location updatedLocation) {
+        for (int i = 0; i < this.locations.size(); i++) {
+            if (this.locations.get(i).getAirportId().equals(updatedLocation.getAirportId())) {
+                this.locations.set(i, updatedLocation.clone());
+                return true;
+            }
+        }
+        System.err.println("Storage: Location with Airport ID " + updatedLocation.getAirportId() + " not found for update.");
+        return false;
+    }
+
+    /**
+     * Actualiza un vuelo existente en el almacenamiento. Esto es más complejo
+     * si el vuelo afecta las listas de otros objetos (pasajeros, avión). Por
+     * ahora, solo actualizaremos los datos directos del vuelo. El retraso ya
+     * modifica el objeto original. Si se cambian el avión o los pasajeros, se
+     * necesitaría una lógica más robusta.
+     *
+     * @param updatedFlight El vuelo con la información actualizada.
+     * @return true si el vuelo fue encontrado y actualizado, false en caso
+     * contrario.
+     */
+    public boolean updateFlight(Flight updatedFlight) {
+        for (int i = 0; i < this.flights.size(); i++) {
+            if (this.flights.get(i).getId().equals(updatedFlight.getId())) {
+                // Considerar el impacto en las listas de pasajeros y avión si estos cambian.
+                // Por ahora, simple reemplazo.
+                // Si updatedFlight tiene referencias a los mismos pasajeros/avión, está bien.
+                // Si tiene nuevas referencias, hay que gestionar la consistencia.
+                Flight oldFlight = this.flights.get(i);
+
+                // Si el avión ha cambiado, hay que quitar el vuelo del avión antiguo y añadirlo al nuevo.
+                if (oldFlight.getPlane() != null && !oldFlight.getPlane().equals(updatedFlight.getPlane())) {
+                    // Esta lógica de desasociar/asociar de avión/pasajeros es compleja
+                    // y debería manejarse con cuidado, preferiblemente en el controlador
+                    // o con métodos más específicos en Storage.
+                    // oldFlight.getPlane().getFlights().remove(oldFlight); // Asumiendo que getFlights() es mutable o hay un removeFlight()
+                }
+                if (updatedFlight.getPlane() != null && !updatedFlight.getPlane().equals(oldFlight.getPlane())) {
+                    // updatedFlight.getPlane().addFlight(updatedFlight);
+                }
+
+                // Similar para pasajeros si la lista de pasajeros del vuelo se modifica externamente
+                // y se pasa el `updatedFlight` con una nueva lista de pasajeros.
+                this.flights.set(i, updatedFlight.clone());
+                return true;
+            }
+        }
+        System.err.println("Storage: Flight with ID " + updatedFlight.getId() + " not found for update.");
+        return false;
+    }
+
+    public boolean associatePassengerWithFlight(long passengerId, String flightId) {
+        Passenger originalPassenger = null;
+        for (Passenger p : this.passengers) { // Iterar sobre la lista original
+            if (p.getId() == passengerId) {
+                originalPassenger = p;
                 break;
             }
         }
-        if (!exists) {
-            this.flights.add(flight);
-        } else {
-            System.err.println("Storage: Flight with ID " + flight.getId() + " already exists. Not added.");
+
+        Flight originalFlight = null;
+        for (Flight f : this.flights) { // Iterar sobre la lista original
+            if (f.getId().equals(flightId)) {
+                originalFlight = f;
+                break;
+            }
         }
+
+        if (originalPassenger == null || originalFlight == null) {
+            System.err.println("Storage: Passenger or Flight not found for association.");
+            return false;
+        }
+
+        // Verificar capacidad (de nuevo, sobre el original)
+        if (originalFlight.getPlane() != null
+                && originalFlight.getNumPassengers() >= originalFlight.getPlane().getMaxCapacity()) {
+            System.err.println("Storage: Flight " + flightId + " is full.");
+            return false;
+        }
+
+        // Verificar si ya está asociado (sobre el original)
+        boolean alreadyAssociated = false;
+        for (Flight f : originalPassenger.getFlights()) { // getFlights() de Passenger devuelve copia, pero podemos chequear IDs
+            if (f.getId().equals(originalFlight.getId())) {
+                alreadyAssociated = true;
+                break;
+            }
+        }
+        if (alreadyAssociated) {
+            System.err.println("Storage: Passenger " + passengerId + " is already on flight " + flightId + " (original check).");
+            return false; // O manejarlo como éxito si la pre-condición es "asegurar que esté asociado"
+        }
+
+        // Realizar la asociación bidireccional en los objetos originales
+        originalPassenger.addFlight(originalFlight); // Modifica la lista interna del Passenger original
+        originalFlight.addPassenger(originalPassenger); // Modifica la lista interna del Flight original
+
+        return true;
     }
+
+    /**
+     * Retrasa un vuelo específico modificando su hora de salida. Opera
+     * directamente sobre la lista interna de vuelos originales.
+     *
+     * @param flightId El ID del vuelo a retrasar.
+     * @param hours Las horas a añadir al retraso.
+     * @param minutes Los minutos a añadir al retraso.
+     * @return true si el vuelo fue encontrado y retrasado, false en caso
+     * contrario.
+     */
+    public boolean delayFlightInStorage(String flightId, int hours, int minutes) {
+        for (Flight f : this.flights) { // Itera sobre la lista original 'this.flights'
+            if (f.getId().equals(flightId)) {
+                f.delay(hours, minutes); // Modifica el objeto Flight original directamente en la lista
+                return true;
+            }
+        }
+        System.err.println("Storage: Flight with ID " + flightId + " not found for delay.");
+        return false;
+    }
+
+    // --- MÉTODOS DE ELIMINACIÓN (Si fueran necesarios) ---
+    // public boolean removePassenger(long id) { ... }
+    // public boolean removePlane(String id) { ... }
+    // etc.
 }
