@@ -188,16 +188,38 @@ public class Storage {
      * @return true si el pasajero fue encontrado y actualizado, false en caso
      * contrario.
      */
-    public boolean updatePassenger(Passenger updatedPassenger) {
+    /**
+     * Actualiza un pasajero existente en el almacenamiento.
+     * Modifica los campos del pasajero original con los datos del pasajero actualizado,
+     * preservando la lista de vuelos original a menos que se indique lo contrario.
+     *
+     * @param passengerWithUpdates El pasajero con la información actualizada.
+     * @return true si el pasajero fue encontrado y actualizado, false en caso
+     * contrario.
+     */
+    public boolean updatePassenger(Passenger passengerWithUpdates) {
         for (int i = 0; i < this.passengers.size(); i++) {
-            if (this.passengers.get(i).getId() == updatedPassenger.getId()) {
-                // Reemplaza el pasajero original con un clon del pasajero actualizado
-                // para mantener la consistencia si 'updatedPassenger' es una referencia externa.
-                this.passengers.set(i, updatedPassenger.clone());
+            Passenger existingPassenger = this.passengers.get(i);
+            if (existingPassenger.getId() == passengerWithUpdates.getId()) {
+                // Actualizar los campos del pasajero existente
+                existingPassenger.setFirstname(passengerWithUpdates.getFirstname());
+                existingPassenger.setLastname(passengerWithUpdates.getLastname());
+                existingPassenger.setBirthDate(passengerWithUpdates.getBirthDate());
+                existingPassenger.setCountryPhoneCode(passengerWithUpdates.getCountryPhoneCode());
+                existingPassenger.setPhone(passengerWithUpdates.getPhone());
+                existingPassenger.setCountry(passengerWithUpdates.getCountry());
+                // La lista de vuelos (existingPassenger.getFlights()) no se toca aquí,
+                // por lo que se preserva. Si necesitaras modificar los vuelos,
+                // sería una operación separada o más compleja.
+
+                // No es necesario this.passengers.set(i, existingPassenger);
+                // porque 'existingPassenger' es una referencia al objeto en la lista,
+                // por lo que las modificaciones a través de los setters ya afectan
+                // al objeto almacenado.
                 return true;
             }
         }
-        System.err.println("Storage: Passenger with ID " + updatedPassenger.getId() + " not found for update.");
+        System.err.println("Storage: Passenger with ID " + passengerWithUpdates.getId() + " not found for update.");
         return false;
     }
 

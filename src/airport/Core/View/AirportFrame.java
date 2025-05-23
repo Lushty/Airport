@@ -58,16 +58,14 @@ public class AirportFrame extends javax.swing.JFrame {
     }
 
     private void populateComboBoxes() {
-        Storage storage = Storage.getInstance();
-
         // User Select (Pasajeros)
         Object firstUser = userSelect.getItemCount() > 0 ? userSelect.getItemAt(0) : "Select User";
         userSelect.removeAllItems();
         userSelect.addItem(firstUser.toString());
-        ArrayList<Passenger> passengersList = storage.getPassengers(); // Obtener de Storage
-        if (passengersList != null) {
-            for (Passenger passenger : passengersList) {
-                userSelect.addItem(String.valueOf(passenger.getId()));
+        ArrayList<String> passengerIds = PassengerController.getAllPassengerIds(); // Cambiado a ArrayList
+        if (passengerIds != null) {
+            for (String passengerId : passengerIds) {
+                userSelect.addItem(passengerId);
             }
         }
 
@@ -75,10 +73,10 @@ public class AirportFrame extends javax.swing.JFrame {
         Object firstPlane = flightPlane.getItemCount() > 0 ? flightPlane.getItemAt(0) : "Plane";
         flightPlane.removeAllItems();
         flightPlane.addItem(firstPlane.toString());
-        ArrayList<Plane> planesList = storage.getPlanes(); // Obtener de Storage
-        if (planesList != null) {
-            for (Plane plane : planesList) {
-                flightPlane.addItem(plane.getId());
+        ArrayList<String> planeIds = PlaneController.getAllPlaneIds(); // Cambiado a ArrayList
+        if (planeIds != null) {
+            for (String planeId : planeIds) {
+                flightPlane.addItem(planeId);
             }
         }
 
@@ -92,12 +90,12 @@ public class AirportFrame extends javax.swing.JFrame {
         arrivalLocation.addItem(firstLocation.toString());
         scaleLocation.addItem(firstLocation.toString());
 
-        ArrayList<Location> locationsList = storage.getLocations(); // Obtener de Storage
-        if (locationsList != null) {
-            for (Location location : locationsList) {
-                departureLocation.addItem(location.getAirportId());
-                arrivalLocation.addItem(location.getAirportId());
-                scaleLocation.addItem(location.getAirportId());
+        ArrayList<String> locationAirportIds = LocationController.getAllLocationAirportIds(); // Cambiado a ArrayList
+        if (locationAirportIds != null) {
+            for (String airportId : locationAirportIds) {
+                departureLocation.addItem(airportId);
+                arrivalLocation.addItem(airportId);
+                scaleLocation.addItem(airportId);
             }
         }
 
@@ -105,10 +103,10 @@ public class AirportFrame extends javax.swing.JFrame {
         Object firstFlight = addFlightSelect.getItemCount() > 0 ? addFlightSelect.getItemAt(0) : "Flight";
         addFlightSelect.removeAllItems();
         addFlightSelect.addItem(firstFlight.toString());
-        ArrayList<Flight> flightsList = storage.getFlights(); // Obtener de Storage
-        if (flightsList != null) {
-            for (Flight flight : flightsList) {
-                addFlightSelect.addItem(flight.getId());
+        ArrayList<String> flightIds = FlightController.getAllFlightIds(); // Cambiado a ArrayList
+        if (flightIds != null) {
+            for (String flightId : flightIds) {
+                addFlightSelect.addItem(flightId);
             }
         }
 
@@ -116,9 +114,9 @@ public class AirportFrame extends javax.swing.JFrame {
         Object firstDelayId = delayID.getItemCount() > 0 ? delayID.getItemAt(0) : "ID";
         delayID.removeAllItems();
         delayID.addItem(firstDelayId.toString());
-        if (flightsList != null) { // Reusar flightsList
-            for (Flight flight : flightsList) {
-                delayID.addItem(flight.getId());
+        if (flightIds != null) { // Reusar flightIds
+            for (String flightId : flightIds) {
+                delayID.addItem(flightId);
             }
         }
     }
@@ -1831,136 +1829,96 @@ public class AirportFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_delayCreateActionPerformed
 
     private void flightsRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_flightsRefreshActionPerformed
+
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         model.setRowCount(0); // Limpiar tabla
+
+        // Asegurarse de que userSelect y su item seleccionado no sean null
+        if (userSelect == null || userSelect.getSelectedItem() == null) {
+            JOptionPane.showMessageDialog(this, "User selection is not available.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         String selectedPassengerIdStr = userSelect.getSelectedItem().toString();
         if (selectedPassengerIdStr.equals("Select User")) {
             JOptionPane.showMessageDialog(this, "Please select a user first.", "Information", JOptionPane.INFORMATION_MESSAGE);
-            return;
+            return; // No hacer nada si el placeholder está seleccionado
         }
 
-        try {
-            long passengerId = Long.parseLong(selectedPassengerIdStr);
-            Storage storage = Storage.getInstance();
-            Passenger selectedPassenger = null;
-            for (Passenger p : storage.getPassengers()) {
-                if (p.getId() == passengerId) {
-                    selectedPassenger = p;
-                    break;
-                }
-            }
+        // Obtener datos a través del controlador
+        ArrayList<Object[]> passengerFlightsData = PassengerController.getFlightsForPassenger(selectedPassengerIdStr);
 
-            if (selectedPassenger != null) {
-                ArrayList<Flight> passengerFlights = new ArrayList<>(selectedPassenger.getFlights()); // Crear copia para ordenar
-                // Ordenar vuelos del pasajero por fecha de salida (más antiguos a más nuevos)
-                passengerFlights.sort(Comparator.comparing(Flight::getDepartureDate));
-
-                for (Flight flight : passengerFlights) {
-                    Object[] row = new Object[3];
-                    row[0] = flight.getId();
-                    row[1] = flight.getDepartureDate().format(dateTimeFormatter);
-                    row[2] = flight.calculateArrivalDate().format(dateTimeFormatter);
-                    model.addRow(row);
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "Selected user not found.", "Error", JOptionPane.ERROR_MESSAGE);
+        if (passengerFlightsData != null) {
+            for (Object[] rowData : passengerFlightsData) {
+                model.addRow(rowData);
             }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Invalid user ID selected.", "Error", JOptionPane.ERROR_MESSAGE);
+        } else {
+            // Opcional: Manejar el caso donde el controlador podría devolver null (aunque lo configuramos para devolver lista vacía)
+            System.err.println("flightsRefreshActionPerformed: passengerFlightsData fue null para el pasajero " + selectedPassengerIdStr);
         }
 
     }//GEN-LAST:event_flightsRefreshActionPerformed
 
     private void passengersRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_passengersRefreshActionPerformed
         DefaultTableModel model = (DefaultTableModel) passengersTable.getModel();
-        model.setRowCount(0);
+        model.setRowCount(0); // Limpiar tabla
 
-        Storage storage = Storage.getInstance();
-        ArrayList<Passenger> passengers = new ArrayList<>(storage.getPassengers()); // Crear copia para ordenar
+        ArrayList<Object[]> passengersData = PassengerController.getAllPassengersForTable();
 
-        // Ordenar pasajeros por ID
-        passengers.sort(Comparator.comparingLong(Passenger::getId));
-
-        for (Passenger passenger : passengers) {
-            Object[] row = new Object[7];
-            row[0] = passenger.getId();
-            row[1] = passenger.getFullname(); // Asumiendo que existe este método en Passenger
-            row[2] = passenger.getBirthDate().format(dateFormatter);
-            row[3] = passenger.calculateAge(); // Asumiendo que existe este método en Passenger
-            row[4] = passenger.generateFullPhone(); // Asumiendo que existe este método en Passenger
-            row[5] = passenger.getCountry();
-            row[6] = passenger.getNumFlights(); // Asumiendo que existe este método en Passenger
-            model.addRow(row);
+        if (passengersData != null) {
+            for (Object[] rowData : passengersData) {
+                model.addRow(rowData);
+            }
+        } else {
+            System.err.println("passengersRefreshActionPerformed: passengersData fue null.");
         }
 
     }//GEN-LAST:event_passengersRefreshActionPerformed
 
     private void generalFlightsRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_generalFlightsRefreshActionPerformed
         DefaultTableModel model = (DefaultTableModel) flightsTable.getModel();
-        model.setRowCount(0);
+        model.setRowCount(0); // Limpiar tabla
 
-        Storage storage = Storage.getInstance();
-        ArrayList<Flight> flights = new ArrayList<>(storage.getFlights());
+        ArrayList<Object[]> flightsData = FlightController.getAllFlightsForTable();
 
-        // Ordenar vuelos por fecha de salida (más antiguos a más nuevos)
-        flights.sort(Comparator.comparing(Flight::getDepartureDate));
-
-        for (Flight flight : flights) {
-            Object[] row = new Object[8];
-            row[0] = flight.getId();
-            row[1] = (flight.getDepartureLocation() != null) ? flight.getDepartureLocation().getAirportId() : "-";
-            row[2] = (flight.getArrivalLocation() != null) ? flight.getArrivalLocation().getAirportId() : "-";
-            row[3] = (flight.getScaleLocation() != null) ? flight.getScaleLocation().getAirportId() : "-";
-            row[4] = flight.getDepartureDate().format(dateTimeFormatter);
-            row[5] = flight.calculateArrivalDate().format(dateTimeFormatter);
-            row[6] = (flight.getPlane() != null) ? flight.getPlane().getId() : "-";
-            row[7] = flight.getNumPassengers(); // Asumiendo que existe este método en Flight
-            model.addRow(row);
+        if (flightsData != null) {
+            for (Object[] rowData : flightsData) {
+                model.addRow(rowData);
+            }
+        } else {
+            System.err.println("generalFlightsRefreshActionPerformed: flightsData fue null.");
         }
 
     }//GEN-LAST:event_generalFlightsRefreshActionPerformed
 
     private void planesRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_planesRefreshActionPerformed
         DefaultTableModel model = (DefaultTableModel) planesTable.getModel();
-        model.setRowCount(0);
+        model.setRowCount(0); // Limpiar tabla
 
-        Storage storage = Storage.getInstance();
-        ArrayList<Plane> planes = new ArrayList<>(storage.getPlanes());
+        ArrayList<Object[]> planesData = PlaneController.getAllPlanesForTable();
 
-        // Ordenar aviones por ID
-        planes.sort(Comparator.comparing(Plane::getId));
-
-        for (Plane plane : planes) {
-            Object[] row = new Object[6];
-            row[0] = plane.getId();
-            row[1] = plane.getBrand();
-            row[2] = plane.getModel();
-            row[3] = plane.getMaxCapacity();
-            row[4] = plane.getAirline();
-            row[5] = plane.getNumFlights(); // Asumiendo que existe este método en Plane
-            model.addRow(row);
+        if (planesData != null) {
+            for (Object[] rowData : planesData) {
+                model.addRow(rowData);
+            }
+        } else {
+            System.err.println("planesRefreshActionPerformed: planesData fue null.");
         }
 
     }//GEN-LAST:event_planesRefreshActionPerformed
 
     private void locationsRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_locationsRefreshActionPerformed
         DefaultTableModel model = (DefaultTableModel) locationsTable.getModel();
-        model.setRowCount(0);
+        model.setRowCount(0); // Limpiar tabla
 
-        Storage storage = Storage.getInstance();
-        ArrayList<Location> locations = new ArrayList<>(storage.getLocations());
+        ArrayList<Object[]> locationsData = LocationController.getAllLocationsForTable();
 
-        // Ordenar localizaciones por Airport ID
-        locations.sort(Comparator.comparing(Location::getAirportId));
-
-        for (Location location : locations) {
-            Object[] row = new Object[4];
-            row[0] = location.getAirportId();
-            row[1] = location.getAirportName();
-            row[2] = location.getAirportCity();
-            row[3] = location.getAirportCountry();
-            model.addRow(row);
+        if (locationsData != null) {
+            for (Object[] rowData : locationsData) {
+                model.addRow(rowData);
+            }
+        } else {
+            System.err.println("locationsRefreshActionPerformed: locationsData fue null.");
         }
 
     }//GEN-LAST:event_locationsRefreshActionPerformed
@@ -1971,46 +1929,44 @@ public class AirportFrame extends javax.swing.JFrame {
 
     private void userSelectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_userSelectActionPerformed
         try {
-        String selectedValue = userSelect.getSelectedItem() != null ? userSelect.getSelectedItem().toString() : "Select User";
-        boolean isActualUserSelected = !selectedValue.equals("Select User") && user.isSelected();
+            String selectedValue = userSelect.getSelectedItem() != null ? userSelect.getSelectedItem().toString() : "Select User";
+            boolean isActualUserSelected = !selectedValue.equals("Select User") && user.isSelected();
 
-        // Pestaña "Passenger registration" (índice 1):
-        // Habilitada si el rol es "User" Y NINGÚN usuario específico está seleccionado.
-        // Deshabilitada si un usuario específico ESTÁ seleccionado (o si el rol no es "User").
-        if (user.isSelected()) {
-            myFlightsTable.setEnabledAt(1, !isActualUserSelected);
-        } else { // Si el rol no es "User" (es decir, es Admin o ninguno), el Admin lo controla.
-             // administratorActionPerformed ya habilita la pestaña 1 para el admin.
-             // Si ningún rol está seleccionado, permanece deshabilitada por el estado inicial.
-            myFlightsTable.setEnabledAt(1, administrator.isSelected());
-        }
+            // Pestaña "Passenger registration" (índice 1):
+            // Habilitada si el rol es "User" Y NINGÚN usuario específico está seleccionado.
+            // Deshabilitada si un usuario específico ESTÁ seleccionado (o si el rol no es "User").
+            if (user.isSelected()) {
+                myFlightsTable.setEnabledAt(1, !isActualUserSelected);
+            } else { // Si el rol no es "User" (es decir, es Admin o ninguno), el Admin lo controla.
+                // administratorActionPerformed ya habilita la pestaña 1 para el admin.
+                // Si ningún rol está seleccionado, permanece deshabilitada por el estado inicial.
+                myFlightsTable.setEnabledAt(1, administrator.isSelected());
+            }
 
+            // Pestañas específicas de un ID de pasajero
+            myFlightsTable.setEnabledAt(5, isActualUserSelected); // "Update info" 
+            myFlightsTable.setEnabledAt(6, isActualUserSelected); // "Add to flight"
+            myFlightsTable.setEnabledAt(7, isActualUserSelected); // "Show my flights"
 
-        // Pestañas específicas de un ID de pasajero
-        myFlightsTable.setEnabledAt(5, isActualUserSelected); // "Update info" 
-        myFlightsTable.setEnabledAt(6, isActualUserSelected); // "Add to flight"
-        myFlightsTable.setEnabledAt(7, isActualUserSelected); // "Show my flights"
+            if (isActualUserSelected) {
+                updateID.setText(selectedValue);
+                addFlightID.setText(selectedValue);
+            } else {
+                updateID.setText("");
+                addFlightID.setText("");
+            }
 
-        if (isActualUserSelected) {
-            updateID.setText(selectedValue);
-            addFlightID.setText(selectedValue);
-        } else {
+            // Las pestañas generales para el ROL "User" (9, 10, 11) ya se habilitaron en userActionPerformed.
+            // No es necesario tocarlas aquí a menos que su lógica cambie.
+        } catch (Exception e) {
+            System.err.println("Error en userSelectActionPerformed: " + e.getMessage());
+            myFlightsTable.setEnabledAt(1, false); // Estado seguro en caso de error
+            myFlightsTable.setEnabledAt(5, false);
+            myFlightsTable.setEnabledAt(6, false);
+            myFlightsTable.setEnabledAt(7, false);
             updateID.setText("");
             addFlightID.setText("");
         }
-        
-        // Las pestañas generales para el ROL "User" (9, 10, 11) ya se habilitaron en userActionPerformed.
-        // No es necesario tocarlas aquí a menos que su lógica cambie.
-
-    } catch (Exception e) {
-        System.err.println("Error en userSelectActionPerformed: " + e.getMessage());
-        myFlightsTable.setEnabledAt(1, false); // Estado seguro en caso de error
-        myFlightsTable.setEnabledAt(5, false);
-        myFlightsTable.setEnabledAt(6, false);
-        myFlightsTable.setEnabledAt(7, false);
-        updateID.setText("");
-        addFlightID.setText("");
-    }
 
     }//GEN-LAST:event_userSelectActionPerformed
 

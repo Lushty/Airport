@@ -8,12 +8,16 @@ import airport.Core.Controller.Utils.Response;
 import airport.Core.Controller.Utils.Status;
 import airport.Core.Model.Plane;
 import airport.Core.Model.Storage.Storage;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 /**
  *
  * @author nxq
  */
 public class PlaneController {
+
     public static Response createPlane(String id, String brand, String model, String maxCapacityStr, String airline) {
         // Validate ID
         if (id == null || id.trim().isEmpty()) {
@@ -37,7 +41,7 @@ public class PlaneController {
 
         // Validate and parse Max Capacity
         int maxCapacity;
-        if (maxCapacityStr == null || maxCapacityStr.trim().isEmpty()){
+        if (maxCapacityStr == null || maxCapacityStr.trim().isEmpty()) {
             return new Response("Maximum capacity cannot be empty.", Status.BAD_REQUEST);
         }
         try {
@@ -56,15 +60,45 @@ public class PlaneController {
                 return new Response("A plane with ID '" + trimmedId + "' already exists.", Status.BAD_REQUEST);
             }
         }
-        
+
         try {
             Plane newPlane = new Plane(trimmedId, brand.trim(), model.trim(), maxCapacity, airline.trim());
             storage.addPlane(newPlane);
             return new Response("Plane registered successfully: " + trimmedId, Status.CREATED);
         } catch (Exception ex) {
-             return new Response("Unexpected error creating plane: " + ex.getMessage(), Status.INTERNAL_SERVER_ERROR);
+            return new Response("Unexpected error creating plane: " + ex.getMessage(), Status.INTERNAL_SERVER_ERROR);
         }
     }
-}
-    
 
+    public static ArrayList<String> getAllPlaneIds() {
+        Storage storage = Storage.getInstance();
+        ArrayList<Plane> planes = storage.getPlanes();
+        if (planes == null) {
+            return new ArrayList<>();
+        }
+        return planes.stream()
+                .map(Plane::getId)
+                .sorted()
+                .collect(Collectors.toCollection(ArrayList::new)); // Específicamente a ArrayList
+    }
+
+    public static ArrayList<Object[]> getAllPlanesForTable() {
+        Storage storage = Storage.getInstance();
+        ArrayList<Plane> planes = storage.getPlanes();
+        if (planes == null) {
+            return new ArrayList<>();
+        }
+        planes.sort(Comparator.comparing(Plane::getId));
+
+        return planes.stream()
+                .map(plane -> new Object[]{
+            plane.getId(),
+            plane.getBrand(),
+            plane.getModel(),
+            plane.getMaxCapacity(),
+            plane.getAirline(),
+            plane.getNumFlights()
+        })
+                .collect(Collectors.toCollection(ArrayList::new)); // Específicamente a ArrayList
+    }
+}

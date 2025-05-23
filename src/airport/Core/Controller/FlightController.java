@@ -12,7 +12,10 @@ import airport.Core.Model.Plane;
 import airport.Core.Model.Storage.Storage;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -232,5 +235,39 @@ public class FlightController {
             return new Response("Flight with ID '" + flightId + "' not found or an error occurred during delay.", Status.NOT_FOUND);
         }
     }
-}
 
+    public static ArrayList<String> getAllFlightIds() {
+        Storage storage = Storage.getInstance();
+        ArrayList<Flight> flights = storage.getFlights();
+        if (flights == null) {
+            return new ArrayList<>();
+        }
+        return flights.stream()
+                .map(Flight::getId)
+                .sorted()
+                .collect(Collectors.toCollection(ArrayList::new)); // Específicamente a ArrayList
+    }
+
+    public static ArrayList<Object[]> getAllFlightsForTable() {
+        Storage storage = Storage.getInstance();
+        ArrayList<Flight> flights = storage.getFlights();
+        if (flights == null) {
+            return new ArrayList<>();
+        }
+        flights.sort(Comparator.comparing(Flight::getDepartureDate));
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        return flights.stream()
+                .map(flight -> new Object[]{
+            flight.getId(),
+            (flight.getDepartureLocation() != null) ? flight.getDepartureLocation().getAirportId() : "-",
+            (flight.getArrivalLocation() != null) ? flight.getArrivalLocation().getAirportId() : "-",
+            (flight.getScaleLocation() != null) ? flight.getScaleLocation().getAirportId() : "-",
+            flight.getDepartureDate().format(dateTimeFormatter),
+            flight.calculateArrivalDate().format(dateTimeFormatter),
+            (flight.getPlane() != null) ? flight.getPlane().getId() : "-",
+            flight.getNumPassengers()
+        })
+                .collect(Collectors.toCollection(ArrayList::new)); // Específicamente a ArrayList
+    }
+}
