@@ -8,7 +8,7 @@ package airport.Core.Model;
  *
  * @author edangulo
  */
-public class Location {
+public class Location implements Cloneable { // Implementar Cloneable
     
     private final String airportId;
     private String airportName;
@@ -24,6 +24,26 @@ public class Location {
         this.airportCountry = airportCountry;
         this.airportLatitude = airportLatitude;
         this.airportLongitude = airportLongitude;
+    }
+
+    // Constructor de copia
+    public Location(Location original) {
+        this.airportId = original.airportId;
+        this.airportName = original.airportName;
+        this.airportCity = original.airportCity;
+        this.airportCountry = original.airportCountry;
+        this.airportLatitude = original.airportLatitude;
+        this.airportLongitude = original.airportLongitude;
+    }
+
+    @Override
+    public Location clone() {
+        try {
+            // Para Location, super.clone() es suficiente ya que todos los campos son primitivos o inmutables (String)
+            return (Location) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError("Cloning failed for Location", e);
+        }
     }
 
     public String getAirportId() {
@@ -49,5 +69,4 @@ public class Location {
     public double getAirportLongitude() {
         return airportLongitude;
     }
-    
 }

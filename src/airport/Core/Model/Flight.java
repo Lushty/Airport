@@ -11,15 +11,15 @@ import java.util.ArrayList;
  *
  * @author edangulo
  */
-public class Flight {
+public class Flight implements Cloneable { // Implementar Cloneable
     
     private final String id;
     private ArrayList<Passenger> passengers;
-    private Plane plane;
-    private Location departureLocation;
-    private Location scaleLocation;
-    private Location arrivalLocation;
-    private LocalDateTime departureDate;
+    private Plane plane; // Referencia compartida
+    private Location departureLocation; // Referencia compartida
+    private Location scaleLocation; // Referencia compartida, puede ser null
+    private Location arrivalLocation; // Referencia compartida
+    private LocalDateTime departureDate; // Inmutable
     private int hoursDurationArrival;
     private int minutesDurationArrival;
     private int hoursDurationScale;
@@ -29,111 +29,136 @@ public class Flight {
     public Flight(String id, Plane plane, Location departureLocation, Location arrivalLocation, LocalDateTime departureDate, int hoursDurationArrival, int minutesDurationArrival) {
         this.id = id;
         this.passengers = new ArrayList<>();
-        this.plane = plane;
-        this.departureLocation = departureLocation;
-        this.arrivalLocation = arrivalLocation;
+        this.plane = plane; // Se asigna la referencia
+        this.departureLocation = departureLocation; // Se asigna la referencia
+        this.arrivalLocation = arrivalLocation; // Se asigna la referencia
         this.departureDate = departureDate;
         this.hoursDurationArrival = hoursDurationArrival;
         this.minutesDurationArrival = minutesDurationArrival;
-        this.scaleLocation = null; // Explicitly null
-        this.hoursDurationScale = 0;   // No scale, so duration is 0
-        this.minutesDurationScale = 0; // No scale, so duration is 0
+        this.scaleLocation = null;
+        this.hoursDurationScale = 0;
+        this.minutesDurationScale = 0;
         
         if (this.plane != null) {
-            this.plane.addFlight(this);
+            // No se añade al clon, solo al original si se modifica la lista de vuelos del avión original.
+            // this.plane.addFlight(this); // Esto crearía una dependencia circular si se clonan profundamente.
         }
     }
 
-    // Constructor for flights with a scale
     public Flight(String id, Plane plane, Location departureLocation, Location scaleLocation, Location arrivalLocation, LocalDateTime departureDate, int hoursDurationArrival, int minutesDurationArrival, int hoursDurationScale, int minutesDurationScale) {
         this.id = id;
         this.passengers = new ArrayList<>();
-        this.plane = plane;
-        this.departureLocation = departureLocation;
-        this.scaleLocation = scaleLocation; // Assigned
-        this.arrivalLocation = arrivalLocation;
+        this.plane = plane; // Se asigna la referencia
+        this.departureLocation = departureLocation; // Se asigna la referencia
+        this.scaleLocation = scaleLocation; // Se asigna la referencia
+        this.arrivalLocation = arrivalLocation; // Se asigna la referencia
         this.departureDate = departureDate;
-        this.hoursDurationArrival = hoursDurationArrival; // This would be duration of the second leg (scale to arrival)
+        this.hoursDurationArrival = hoursDurationArrival;
         this.minutesDurationArrival = minutesDurationArrival;
-        this.hoursDurationScale = hoursDurationScale;     // Duration of stop at scale
+        this.hoursDurationScale = hoursDurationScale;
         this.minutesDurationScale = minutesDurationScale;
-        // Note: The interpretation of hoursDurationArrival/minutesDurationArrival needs to be consistent.
-        // If it's total flight time EXCLUDING stopover, then the constructor logic is more complex.
-        // If it's per-leg, then the current model is okay, but calculateArrivalDate needs to be very clear.
-        // Based on the provided JSON, it seems "hoursDurationArrival" might be total travel time excluding layover.
-        // For now, I'll assume hoursDurationArrival/minutesDurationArrival is the duration of the *final leg* if there's a scale,
-        // or total duration if no scale. The problem description implies "tiempo del vuelo" as a whole.
-        // Let's assume the current fields are:
-        // hoursDurationArrival/minutesDurationArrival = total travel time in air (sum of legs)
-        // hoursDurationScale/minutesDurationScale = layover time at scale location
         
-        if (this.plane != null) {
-            this.plane.addFlight(this);
-        }
+        // if (this.plane != null) {
+        //     this.plane.addFlight(this);
+        // }
     }
     
-    public void addPassenger(Passenger passenger){
-        if (!this.passengers.contains(passenger)){
+    // Constructor de copia
+    public Flight(Flight original) {
+        this.id = original.id;
+        this.passengers = new ArrayList<>(original.passengers); // Copia de la lista, mismas referencias a Passenger
+        
+        // Las referencias a Plane y Location se copian. No se clonan profundamente.
+        // Esto es generalmente lo deseado: la copia del vuelo se refiere al mismo avión/ubicación física.
+        this.plane = original.plane; 
+        this.departureLocation = original.departureLocation;
+        this.scaleLocation = original.scaleLocation;
+        this.arrivalLocation = original.arrivalLocation;
+        
+        this.departureDate = original.departureDate; // LocalDateTime es inmutable
+        this.hoursDurationArrival = original.hoursDurationArrival;
+        this.minutesDurationArrival = original.minutesDurationArrival;
+        this.hoursDurationScale = original.hoursDurationScale;
+        this.minutesDurationScale = original.minutesDurationScale;
+    }
+
+
+    @Override
+    public Flight clone() {
+        try {
+            Flight cloned = (Flight) super.clone();
+            // Primitivos e inmutables (String, LocalDateTime) se copian bien.
+            // Copiar referencias para Plane y Location (no clonar profundamente por defecto)
+            cloned.plane = this.plane; // Sigue apuntando al mismo objeto Plane
+            cloned.departureLocation = this.departureLocation; // Sigue apuntando al mismo objeto Location
+            cloned.scaleLocation = this.scaleLocation;
+            cloned.arrivalLocation = this.arrivalLocation;
+            
+            // Crear una nueva lista de pasajeros, pero con las mismas referencias a los objetos Passenger
+            cloned.passengers = new ArrayList<>(this.passengers);
+            return cloned;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError("Cloning failed for Flight", e);
+        }
+    }
+
+    public void addPassenger(Passenger passenger) {
+        if (!this.passengers.contains(passenger)) {
             this.passengers.add(passenger);
         }
     }
     
-    public ArrayList<Passenger> getPassengers(){
-        return this.passengers;
+    public ArrayList<Passenger> getPassengers() {
+        return new ArrayList<>(this.passengers); // Devolver copia
     }
-    
+
     public String getId() {
         return id;
     }
 
     public Location getDepartureLocation() {
-        return departureLocation;
+        return departureLocation; // Devuelve la referencia, podría clonarse si se necesita aislamiento total
     }
 
     public Location getScaleLocation() {
-        return scaleLocation;
+        return scaleLocation; // Devuelve la referencia
     }
 
     public Location getArrivalLocation() {
-        return arrivalLocation;
+        return arrivalLocation; // Devuelve la referencia
     }
 
     public LocalDateTime getDepartureDate() {
         return departureDate;
     }
 
-    public int getHoursDurationArrival() { // Represents travel time (potentially sum of legs)
+    public int getHoursDurationArrival() {
         return hoursDurationArrival;
     }
 
-    public int getMinutesDurationArrival() { // Represents travel time (potentially sum of legs)
+    public int getMinutesDurationArrival() {
         return minutesDurationArrival;
     }
 
-    public int getHoursDurationScale() { // Represents layover time
+    public int getHoursDurationScale() {
         return hoursDurationScale;
     }
 
-    public int getMinutesDurationScale() { // Represents layover time
+    public int getMinutesDurationScale() {
         return minutesDurationScale;
     }
 
     public Plane getPlane() {
-        return plane;
+        return plane; // Devuelve la referencia
     }
 
     public void setDepartureDate(LocalDateTime departureDate) {
         this.departureDate = departureDate;
     }
     
-    /**
-     * Calculates the final arrival date.
-     * If there's a scale, it adds the travel time and the scale layover time.
-     * If no scale, it just adds the travel time.
-     */
     public LocalDateTime calculateArrivalDate() {
         LocalDateTime arrival = departureDate.plusHours(hoursDurationArrival).plusMinutes(minutesDurationArrival);
-        if (scaleLocation != null) { // If there was a scale, add the layover time as well
+        if (scaleLocation != null) { 
             arrival = arrival.plusHours(hoursDurationScale).plusMinutes(minutesDurationScale);
         }
         return arrival;
@@ -146,5 +171,4 @@ public class Flight {
     public int getNumPassengers() {
         return passengers.size();
     }
-    
 }
