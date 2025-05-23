@@ -9,5 +9,8 @@ package airport.Core.Controller;
  * @author nxq
  */
 public class PlaneController {
+    public boolean createPlane(){
+        return true;
+    }
     
 }
