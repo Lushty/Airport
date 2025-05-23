@@ -4,7 +4,10 @@
  */
 package airport.Core.View;
 
+import airport.Core.Controller.FlightController;
+import airport.Core.Controller.LocationController;
 import airport.Core.Controller.PassengerController;
+import airport.Core.Controller.PlaneController;
 import airport.Core.Controller.Utils.Response;
 import airport.Core.Model.Flight;
 import airport.Core.Model.Location;
@@ -31,7 +34,6 @@ public class AirportFrame extends javax.swing.JFrame {
      */
     private int x, y;
 
-
     public AirportFrame() {
         initComponents();
 
@@ -45,8 +47,8 @@ public class AirportFrame extends javax.swing.JFrame {
         this.blockPanels();
         populateComboBoxes();
     }
-    
-private void populateComboBoxes() {
+
+    private void populateComboBoxes() {
         Storage storage = Storage.getInstance();
 
         // User Select (Pasajeros)
@@ -70,7 +72,7 @@ private void populateComboBoxes() {
                 flightPlane.addItem(plane.getId());
             }
         }
-        
+
         // Departure, Arrival, Scale Locations (Ubicaciones)
         Object firstLocation = departureLocation.getItemCount() > 0 ? departureLocation.getItemAt(0) : "Location";
         departureLocation.removeAllItems();
@@ -80,7 +82,7 @@ private void populateComboBoxes() {
         departureLocation.addItem(firstLocation.toString());
         arrivalLocation.addItem(firstLocation.toString());
         scaleLocation.addItem(firstLocation.toString());
-        
+
         ArrayList<Location> locationsList = storage.getLocations(); // Obtener de Storage
         if (locationsList != null) {
             for (Location location : locationsList) {
@@ -89,13 +91,13 @@ private void populateComboBoxes() {
                 scaleLocation.addItem(location.getAirportId());
             }
         }
-            
+
         // Add Flight Select (Vuelos)
         Object firstFlight = addFlightSelect.getItemCount() > 0 ? addFlightSelect.getItemAt(0) : "Flight";
         addFlightSelect.removeAllItems();
         addFlightSelect.addItem(firstFlight.toString());
         ArrayList<Flight> flightsList = storage.getFlights(); // Obtener de Storage
-         if (flightsList != null) {
+        if (flightsList != null) {
             for (Flight flight : flightsList) {
                 addFlightSelect.addItem(flight.getId());
             }
@@ -1506,19 +1508,19 @@ private void populateComboBoxes() {
         String year = passengerYear.getText();
         String month = passengerMonth.getItemAt(passengerMonth.getSelectedIndex());
         String day = passengerDay.getItemAt(passengerDay.getSelectedIndex());
-        String phoneCode =passengerCCode.getText();
-        String  phone = passengerPhone.getText();
+        String phoneCode = passengerCCode.getText();
+        String phone = passengerPhone.getText();
         String country = passengerCountry.getText();
-        
+
         Response response = PassengerController.registerPassenger(id, firstname, lastname, year, month, day, phoneCode, phone, country); //
-        
-         if (response.getStatus() >= 500) {
+
+        if (response.getStatus() >= 500) {
             JOptionPane.showMessageDialog(null, response.getMessage(), "Error " + response.getStatus(), JOptionPane.ERROR_MESSAGE);
         } else if (response.getStatus() >= 400) {
             JOptionPane.showMessageDialog(null, response.getMessage(), "Error " + response.getStatus(), JOptionPane.WARNING_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(null, response.getMessage(), "Response Message", JOptionPane.INFORMATION_MESSAGE);
-            
+
             // Limpiar campos
             passengerID.setText("");
             passengerName.setText("");
@@ -1529,90 +1531,159 @@ private void populateComboBoxes() {
             passengerCCode.setText("");
             passengerPhone.setText("");
             passengerCountry.setText("");
-            
+
             // Repoblar el ComboBox de usuarios
             populateComboBoxes(); // O una versión más específica si solo quieres recargar userSelect
-        }        
-    
+        }
+
     }//GEN-LAST:event_passengerCreateActionPerformed
 
     private void planeCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_planeCreateActionPerformed
-        // TODO add your handling code here:
         String id = planeID.getText();
         String brand = planeBrand.getText();
         String model = planeModel.getText();
-        int maxCapacity = Integer.parseInt(planeMaxCap.getText());
+        String maxCapacityStr = planeMaxCap.getText(); // Obtener como String
         String airline = planeAirline.getText();
 
-//        this.planes.add(new Plane(id, brand, model, maxCapacity, airline));
+        Response response = PlaneController.createPlane(id, brand, model, maxCapacityStr, airline);
 
-        this.flightPlane.addItem(id);
+        if (response.getStatus() >= 500) {
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Error " + response.getStatus(), JOptionPane.ERROR_MESSAGE);
+        } else if (response.getStatus() >= 400) {
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Warning " + response.getStatus(), JOptionPane.WARNING_MESSAGE);
+        } else { // Asumimos Status.CREATED o Status.OK
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Success", JOptionPane.INFORMATION_MESSAGE);
+            // Limpiar campos
+            planeID.setText("");
+            planeBrand.setText("");
+            planeModel.setText("");
+            planeMaxCap.setText("");
+            planeAirline.setText("");
+
+            populateComboBoxes(); // Actualizar JComboBoxes que listan aviones
+        }
+
     }//GEN-LAST:event_planeCreateActionPerformed
 
     private void locationCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_locationCreateActionPerformed
-        // TODO add your handling code here:
         String id = locationID.getText();
-        String name = loationName.getText();
+        String name = loationName.getText(); // Corregir posible typo: loationName a locationName si es necesario
         String city = locationCity.getText();
         String country = locationCountry.getText();
-        double latitude = Double.parseDouble(locationLat.getText());
-        double longitude = Double.parseDouble(locationLong.getText());
+        String latitudeStr = locationLat.getText();
+        String longitudeStr = locationLong.getText();
 
-//        this.locations.add(new Location(id, name, city, country, latitude, longitude));
+        Response response = LocationController.createLocation(id, name, city, country, latitudeStr, longitudeStr);
 
-        this.departureLocation.addItem(id);
-        this.arrivalLocation.addItem(id);
-        this.scaleLocation.addItem(id);
+        if (response.getStatus() >= 500) {
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Error " + response.getStatus(), JOptionPane.ERROR_MESSAGE);
+        } else if (response.getStatus() >= 400) {
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Warning " + response.getStatus(), JOptionPane.WARNING_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Success", JOptionPane.INFORMATION_MESSAGE);
+            // Limpiar campos
+            locationID.setText("");
+            loationName.setText(""); // locationName
+            locationCity.setText("");
+            locationCountry.setText("");
+            locationLat.setText("");
+            locationLong.setText("");
+
+            populateComboBoxes(); // Actualizar JComboBoxes que listan ubicaciones
+        }
+
     }//GEN-LAST:event_locationCreateActionPerformed
 
     private void flightCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_flightCreateActionPerformed
         // TODO add your handling code here:
         String id = flightID.getText();
-        String planeId = flightPlane.getItemAt(flightPlane.getSelectedIndex());
-        String departureLocationId = departureLocation.getItemAt(departureLocation.getSelectedIndex());
-        String arrivalLocationId = arrivalLocation.getItemAt(arrivalLocation.getSelectedIndex());
-        String scaleLocationId = scaleLocation.getItemAt(scaleLocation.getSelectedIndex());
-        int year = Integer.parseInt(departureYear.getText());
-        int month = Integer.parseInt(departureMonth.getItemAt(departureMonth.getSelectedIndex()));
-        int day = Integer.parseInt(departureDay.getItemAt(departureDay.getSelectedIndex()));
-        int hour = Integer.parseInt(MONTH2.getItemAt(MONTH2.getSelectedIndex()));
-        int minutes = Integer.parseInt(DAY2.getItemAt(DAY2.getSelectedIndex()));
-        int hoursDurationsArrival = Integer.parseInt(arrivalHour.getItemAt(arrivalHour.getSelectedIndex()));
-        int minutesDurationsArrival = Integer.parseInt(arrivalMinute.getItemAt(arrivalMinute.getSelectedIndex()));
-        int hoursDurationsScale = Integer.parseInt(scaleHour.getItemAt(scaleHour.getSelectedIndex()));
-        int minutesDurationsScale = Integer.parseInt(scaleMinute.getItemAt(scaleMinute.getSelectedIndex()));
+        String planeId = flightPlane.getSelectedItem().toString();
+        String departureLocationId = departureLocation.getSelectedItem().toString();
+        String arrivalLocationId = arrivalLocation.getSelectedItem().toString();
+        String scaleLocationId = scaleLocation.getSelectedItem().toString();
 
-        LocalDateTime departureDate = LocalDateTime.of(year, month, day, hour, minutes);
+        String depYear = departureYear.getText();
+        String depMonth = departureMonth.getSelectedItem().toString();
+        String depDay = departureDay.getSelectedItem().toString();
+        // Asegúrate de que MONTH2 y DAY2 son para la hora y minuto de salida respectivamente
+        String departureHour = MONTH2.getSelectedItem().toString(); // Nombre de variable confuso, debería ser departureHourSelect
+        String departureMinute = DAY2.getSelectedItem().toString(); // Nombre de variable confuso, debería ser departureMinuteSelect
 
-//        Plane plane = null;
-//        for (Plane p : this.planes) {
-//            if (planeId.equals(p.getId())) {
-//                plane = p;
-//            }
-//        }
+        String hoursDurationArrival = arrivalHour.getSelectedItem().toString();
+        String minutesDurationArrival = arrivalMinute.getSelectedItem().toString();
+        String hoursDurationScale = scaleHour.getSelectedItem().toString();
+        String minutesDurationScale = scaleMinute.getSelectedItem().toString();
 
-//        Location departure = null;
-//        Location arrival = null;
-//        Location scale = null;
-//        for (Location location : this.locations) {
-//            if (departureLocationId.equals(location.getAirportId())) {
-//                departure = location;
-//            }
-//            if (arrivalLocationId.equals(location.getAirportId())) {
-//                arrival = location;
-//            }
-//            if (scaleLocationId.equals(location.getAirportId())) {
-//                scale = location;
-//            }
-//        }
-//
-//        if (scale == null) {
-//            this.flights.add(new Flight(id, plane, departure, arrival, departureDate, hoursDurationsArrival, minutesDurationsArrival));
-//        } else {
-//            this.flights.add(new Flight(id, plane, departure, scale, arrival, departureDate, hoursDurationsArrival, minutesDurationsArrival, hoursDurationsScale, minutesDurationsScale));
-//        }
-//
-//        this.addFlightSelect.addItem(id);
+        // El controlador de FlightController espera "Location" o "" si no hay escala.
+        // Ajusta scaleLocationId si el valor por defecto del JComboBox es "Location" y no se selecciona nada.
+        if ("Location".equals(scaleLocationId)) {
+            scaleLocationId = null; // O una cadena vacía si el controlador lo maneja así
+        }
+        if ("Plane".equals(planeId)) {
+            planeId = null;
+        }
+        if ("Location".equals(departureLocationId)) {
+            departureLocationId = null;
+        }
+        if ("Location".equals(arrivalLocationId)) {
+            arrivalLocationId = null;
+        }
+        // Similar para los JComboBox de hora/minuto si tienen un valor por defecto como "Hour" o "Minute"
+        if ("Month".equals(depMonth)) {
+            departureMonth = null;
+        }
+        if ("Day".equals(depDay)) {
+            departureDay = null;
+        }
+        if ("Hour".equals(departureHour)) {
+            departureHour = null;
+        }
+        if ("Minute".equals(departureMinute)) {
+            departureMinute = null;
+        }
+        if ("Hour".equals(hoursDurationArrival)) {
+            hoursDurationArrival = null;
+        }
+        if ("Minute".equals(minutesDurationArrival)) {
+            minutesDurationArrival = null;
+        }
+        if ("Hour".equals(hoursDurationScale)) {
+            hoursDurationScale = null;
+        }
+        if ("Minute".equals(minutesDurationScale)) {
+            minutesDurationScale = null;
+        }
+
+        Response response = FlightController.createFlight(id, planeId, departureLocationId, arrivalLocationId, scaleLocationId,
+                depYear, depMonth, depDay, departureHour, departureMinute,
+                hoursDurationArrival, minutesDurationArrival,
+                hoursDurationScale, minutesDurationScale);
+
+        if (response.getStatus() >= 500) {
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Error " + response.getStatus(), JOptionPane.ERROR_MESSAGE);
+        } else if (response.getStatus() >= 400) {
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Warning " + response.getStatus(), JOptionPane.WARNING_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Success", JOptionPane.INFORMATION_MESSAGE);
+            // Limpiar todos los campos del formulario de vuelo
+            flightID.setText("");
+            flightPlane.setSelectedIndex(0);
+            departureLocation.setSelectedIndex(0);
+            arrivalLocation.setSelectedIndex(0);
+            scaleLocation.setSelectedIndex(0);
+            departureYear.setText("");
+            departureMonth.setSelectedIndex(0);
+            departureDay.setSelectedIndex(0);
+            MONTH2.setSelectedIndex(0); // departureHourSelect
+            DAY2.setSelectedIndex(0);   // departureMinuteSelect
+            arrivalHour.setSelectedIndex(0);
+            arrivalMinute.setSelectedIndex(0);
+            scaleHour.setSelectedIndex(0);
+            scaleMinute.setSelectedIndex(0);
+
+            populateComboBoxes(); // Actualizar JComboBoxes que listan vuelos (addFlightSelect, delayID)
+        }
+
     }//GEN-LAST:event_flightCreateActionPerformed
 
     private void updateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateActionPerformed
@@ -1636,7 +1707,7 @@ private void populateComboBoxes() {
 //            }
 //        }
 //
-////        passenger.setFirstname(firstname);
+    ////        passenger.setFirstname(firstname);
 //        passenger.setLastname(lastname);
 //        passenger.setBirthDate(birthDate);
 //        passenger.setCountryPhoneCode(phoneCode);
@@ -1669,19 +1740,36 @@ private void populateComboBoxes() {
     }//GEN-LAST:event_addFlightActionPerformed
 
     private void delayCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_delayCreateActionPerformed
-        // TODO add your handling code here:
-//        String flightId = delayID.getItemAt(delayID.getSelectedIndex());
-//        int hours = Integer.parseInt(delayHour.getItemAt(delayHour.getSelectedIndex()));
-//        int minutes = Integer.parseInt(delayMinute.getItemAt(delayMinute.getSelectedIndex()));
-//
-//        Flight flight = null;
-//        for (Flight f : this.flights) {
-//            if (flightId.equals(f.getId())) {
-//                flight = f;
-//            }
-//        }
-//
-//        flight.delay(hours, minutes);
+String flightId = delayID.getSelectedItem().toString();
+    String hoursStr = delayHour.getSelectedItem().toString();
+    String minutesStr = delayMinute.getSelectedItem().toString();
+
+    // Similar a flightCreateActionPerformed, manejar valores por defecto de JComboBox
+    if ("ID".equals(flightId)) {
+        flightId = null;
+    }
+    if ("Hour".equals(hoursStr)) {
+        hoursStr = null;
+    }
+    if ("Minute".equals(minutesStr)) {
+        minutesStr = null;
+    }
+
+    Response response = FlightController.delayFlight(flightId, hoursStr, minutesStr);
+
+    if (response.getStatus() >= 500) {
+        JOptionPane.showMessageDialog(this, response.getMessage(), "Error " + response.getStatus(), JOptionPane.ERROR_MESSAGE);
+    } else if (response.getStatus() >= 400) {
+        JOptionPane.showMessageDialog(this, response.getMessage(), "Warning " + response.getStatus(), JOptionPane.WARNING_MESSAGE);
+    } else { // Status.OK
+        JOptionPane.showMessageDialog(this, response.getMessage(), "Success", JOptionPane.INFORMATION_MESSAGE);
+        delayID.setSelectedIndex(0);
+        delayHour.setSelectedIndex(0);
+        delayMinute.setSelectedIndex(0);
+        // No es necesario llamar a populateComboBoxes() a menos que el retraso cambie algo en los combos.
+        // Podrías querer refrescar la tabla de vuelos si está visible.
+    }
+
     }//GEN-LAST:event_delayCreateActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
