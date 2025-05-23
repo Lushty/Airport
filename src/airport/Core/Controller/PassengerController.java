@@ -6,6 +6,7 @@ package airport.Core.Controller;
 
 import airport.Core.Controller.Utils.Response;
 import airport.Core.Controller.Utils.Status;
+import airport.Core.Model.Flight;
 import airport.Core.Model.Storage.Storage;
 import airport.Core.Model.Passenger;
 import java.time.DateTimeException;
@@ -109,6 +110,7 @@ public class PassengerController {
 
         return null; // All validations passed
     }
+    
 
     public static Response registerPassenger(String idStr, String firstname, String lastname, String yearStr, String monthStr, String dayStr, String phoneCodeStr, String phoneStr, String country) {
         Response validationResponse = validatePassengerData(idStr, firstname, lastname, yearStr, monthStr, dayStr, phoneCodeStr, phoneStr, country, false);
@@ -184,6 +186,70 @@ public class PassengerController {
 
         } catch (Exception ex) { // Catch any unexpected error
             return new Response("Unexpected error updating passenger: " + ex.getMessage(), Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+    public static Response addPassengerToFlight(String passengerIdStr, String flightIdStr) {
+        // Validar Passenger ID
+        long passengerId;
+        if (passengerIdStr == null || passengerIdStr.trim().isEmpty()) {
+            return new Response("Passenger ID cannot be empty.", Status.BAD_REQUEST);
+        }
+        try {
+            passengerId = Long.parseLong(passengerIdStr.trim());
+        } catch (NumberFormatException ex) {
+            return new Response("Passenger ID must be a valid number.", Status.BAD_REQUEST);
+        }
+
+        // Validar Flight ID
+        if (flightIdStr == null || flightIdStr.trim().isEmpty() || flightIdStr.equals("Flight")) { // "Flight" es el placeholder del JComboBox
+            return new Response("Flight ID must be selected.", Status.BAD_REQUEST);
+        }
+
+        Storage storage = Storage.getInstance();
+
+        // Buscar Pasajero
+        Passenger passenger = null;
+        for (Passenger p : storage.getPassengers()) {
+            if (p.getId() == passengerId) {
+                passenger = p;
+                break;
+            }
+        }
+        if (passenger == null) {
+            return new Response("Passenger with ID " + passengerId + " not found.", Status.NOT_FOUND);
+        }
+
+        // Buscar Vuelo
+        Flight flight = null;
+        for (Flight f : storage.getFlights()) {
+            if (f.getId().equals(flightIdStr)) {
+                flight = f;
+                break;
+            }
+        }
+        if (flight == null) {
+            return new Response("Flight with ID " + flightIdStr + " not found.", Status.NOT_FOUND);
+        }
+
+        // Verificar si el pasajero ya está en el vuelo
+        if (passenger.getFlights().contains(flight) || flight.getPassengers().contains(passenger)) {
+            return new Response("Passenger " + passengerId + " is already on flight " + flightIdStr + ".", Status.BAD_REQUEST);
+        }
+
+        // Verificar capacidad del avión
+        if (flight.getPlane() != null && flight.getNumPassengers() >= flight.getPlane().getMaxCapacity()) {
+            return new Response("Flight " + flightIdStr + " is full. Cannot add more passengers.", Status.BAD_REQUEST);
+        }
+        
+        // Añadir pasajero al vuelo y vuelo al pasajero
+        try {
+            passenger.addFlight(flight); // Método en el modelo Passenger
+            flight.addPassenger(passenger); // Método en el modelo Flight
+            
+            return new Response("Passenger " + passengerId + " added to flight " + flightIdStr + " successfully.", Status.OK);
+        } catch (Exception e) {
+            // Podría haber otras lógicas o excepciones en los métodos addFlight/addPassenger del modelo
+            return new Response("Error adding passenger to flight: " + e.getMessage(), Status.INTERNAL_SERVER_ERROR);
         }
     }
 }

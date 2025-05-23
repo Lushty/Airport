@@ -72,8 +72,14 @@ public class Flight {
         }
     }
     
-    public void addPassenger(Passenger passenger) {
-        this.passengers.add(passenger);
+    public void addPassenger(Passenger passenger){
+        if (!this.passengers.contains(passenger)){
+            this.passengers.add(passenger);
+        }
+    }
+    
+    public ArrayList<Passenger> getPassengers(){
+        return this.passengers;
     }
     
     public String getId() {

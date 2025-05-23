@@ -14,13 +14,12 @@ import airport.Core.Model.Location;
 import airport.Core.Model.Passenger;
 import airport.Core.Model.Plane;
 import airport.Core.Model.Storage.Storage;
-import com.formdev.flatlaf.FlatDarkLaf;
 import java.awt.Color;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import javax.swing.JOptionPane;
-import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -33,6 +32,8 @@ public class AirportFrame extends javax.swing.JFrame {
      * Creates new form AirportFrame
      */
     private int x, y;
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public AirportFrame() {
         initComponents();
@@ -176,7 +177,7 @@ public class AirportFrame extends javax.swing.JFrame {
 
         panelRound1 = new airport.Core.View.PanelRound();
         panelRound2 = new airport.Core.View.PanelRound();
-        jButton13 = new javax.swing.JButton();
+        exit = new javax.swing.JButton();
         myFlightsTable = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
         user = new javax.swing.JRadioButton();
@@ -287,23 +288,23 @@ public class AirportFrame extends javax.swing.JFrame {
         jPanel7 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
-        jButton2 = new javax.swing.JButton();
+        flightsRefresh = new javax.swing.JButton();
         jPanel8 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         passengersTable = new javax.swing.JTable();
-        jButton3 = new javax.swing.JButton();
+        passengersRefresh = new javax.swing.JButton();
         jPanel9 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         flightsTable = new javax.swing.JTable();
-        jButton4 = new javax.swing.JButton();
+        generalFlightsRefresh = new javax.swing.JButton();
         jPanel10 = new javax.swing.JPanel();
-        jButton5 = new javax.swing.JButton();
+        planesRefresh = new javax.swing.JButton();
         jScrollPane4 = new javax.swing.JScrollPane();
         planesTable = new javax.swing.JTable();
         jPanel11 = new javax.swing.JPanel();
         jScrollPane5 = new javax.swing.JScrollPane();
         locationsTable = new javax.swing.JTable();
-        jButton6 = new javax.swing.JButton();
+        locationsRefresh = new javax.swing.JButton();
         jPanel12 = new javax.swing.JPanel();
         delayHour = new javax.swing.JComboBox<>();
         jLabel46 = new javax.swing.JLabel();
@@ -331,14 +332,14 @@ public class AirportFrame extends javax.swing.JFrame {
             }
         });
 
-        jButton13.setFont(new java.awt.Font("Yu Gothic UI", 0, 18)); // NOI18N
-        jButton13.setText("X");
-        jButton13.setBorderPainted(false);
-        jButton13.setContentAreaFilled(false);
-        jButton13.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        jButton13.addActionListener(new java.awt.event.ActionListener() {
+        exit.setFont(new java.awt.Font("Yu Gothic UI", 0, 18)); // NOI18N
+        exit.setText("X");
+        exit.setBorderPainted(false);
+        exit.setContentAreaFilled(false);
+        exit.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        exit.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton13ActionPerformed(evt);
+                exitActionPerformed(evt);
             }
         });
 
@@ -348,13 +349,13 @@ public class AirportFrame extends javax.swing.JFrame {
             panelRound2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelRound2Layout.createSequentialGroup()
                 .addContainerGap(1083, Short.MAX_VALUE)
-                .addComponent(jButton13, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(exit, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(17, 17, 17))
         );
         panelRound2Layout.setVerticalGroup(
             panelRound2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelRound2Layout.createSequentialGroup()
-                .addComponent(jButton13)
+                .addComponent(exit)
                 .addGap(0, 12, Short.MAX_VALUE))
         );
 
@@ -1095,11 +1096,11 @@ public class AirportFrame extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(jTable1);
 
-        jButton2.setFont(new java.awt.Font("Yu Gothic UI", 0, 18)); // NOI18N
-        jButton2.setText("Refresh");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        flightsRefresh.setFont(new java.awt.Font("Yu Gothic UI", 0, 18)); // NOI18N
+        flightsRefresh.setText("Refresh");
+        flightsRefresh.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                flightsRefreshActionPerformed(evt);
             }
         });
 
@@ -1113,7 +1114,7 @@ public class AirportFrame extends javax.swing.JFrame {
                 .addContainerGap(291, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton2)
+                .addComponent(flightsRefresh)
                 .addGap(527, 527, 527))
         );
         jPanel7Layout.setVerticalGroup(
@@ -1122,7 +1123,7 @@ public class AirportFrame extends javax.swing.JFrame {
                 .addGap(61, 61, 61)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 29, Short.MAX_VALUE)
-                .addComponent(jButton2)
+                .addComponent(flightsRefresh)
                 .addContainerGap())
         );
 
@@ -1154,11 +1155,11 @@ public class AirportFrame extends javax.swing.JFrame {
         });
         jScrollPane2.setViewportView(passengersTable);
 
-        jButton3.setFont(new java.awt.Font("Yu Gothic UI", 0, 18)); // NOI18N
-        jButton3.setText("Refresh");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        passengersRefresh.setFont(new java.awt.Font("Yu Gothic UI", 0, 18)); // NOI18N
+        passengersRefresh.setText("Refresh");
+        passengersRefresh.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                passengersRefreshActionPerformed(evt);
             }
         });
 
@@ -1170,7 +1171,7 @@ public class AirportFrame extends javax.swing.JFrame {
                 .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel8Layout.createSequentialGroup()
                         .addGap(489, 489, 489)
-                        .addComponent(jButton3))
+                        .addComponent(passengersRefresh))
                     .addGroup(jPanel8Layout.createSequentialGroup()
                         .addGap(47, 47, 47)
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 1078, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -1182,7 +1183,7 @@ public class AirportFrame extends javax.swing.JFrame {
                 .addContainerGap(72, Short.MAX_VALUE)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jButton3)
+                .addComponent(passengersRefresh)
                 .addContainerGap())
         );
 
@@ -1214,11 +1215,11 @@ public class AirportFrame extends javax.swing.JFrame {
         });
         jScrollPane3.setViewportView(flightsTable);
 
-        jButton4.setFont(new java.awt.Font("Yu Gothic UI", 0, 18)); // NOI18N
-        jButton4.setText("Refresh");
-        jButton4.addActionListener(new java.awt.event.ActionListener() {
+        generalFlightsRefresh.setFont(new java.awt.Font("Yu Gothic UI", 0, 18)); // NOI18N
+        generalFlightsRefresh.setText("Refresh");
+        generalFlightsRefresh.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton4ActionPerformed(evt);
+                generalFlightsRefreshActionPerformed(evt);
             }
         });
 
@@ -1233,7 +1234,7 @@ public class AirportFrame extends javax.swing.JFrame {
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 1100, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel9Layout.createSequentialGroup()
                         .addGap(521, 521, 521)
-                        .addComponent(jButton4)))
+                        .addComponent(generalFlightsRefresh)))
                 .addContainerGap(21, Short.MAX_VALUE))
         );
         jPanel9Layout.setVerticalGroup(
@@ -1242,17 +1243,17 @@ public class AirportFrame extends javax.swing.JFrame {
                 .addGap(60, 60, 60)
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jButton4)
+                .addComponent(generalFlightsRefresh)
                 .addContainerGap(18, Short.MAX_VALUE))
         );
 
         myFlightsTable.addTab("Show all flights", jPanel9);
 
-        jButton5.setFont(new java.awt.Font("Yu Gothic UI", 0, 18)); // NOI18N
-        jButton5.setText("Refresh");
-        jButton5.addActionListener(new java.awt.event.ActionListener() {
+        planesRefresh.setFont(new java.awt.Font("Yu Gothic UI", 0, 18)); // NOI18N
+        planesRefresh.setText("Refresh");
+        planesRefresh.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton5ActionPerformed(evt);
+                planesRefreshActionPerformed(evt);
             }
         });
 
@@ -1289,7 +1290,7 @@ public class AirportFrame extends javax.swing.JFrame {
                 .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel10Layout.createSequentialGroup()
                         .addGap(508, 508, 508)
-                        .addComponent(jButton5))
+                        .addComponent(planesRefresh))
                     .addGroup(jPanel10Layout.createSequentialGroup()
                         .addGap(145, 145, 145)
                         .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 816, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -1301,7 +1302,7 @@ public class AirportFrame extends javax.swing.JFrame {
                 .addContainerGap(45, Short.MAX_VALUE)
                 .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(34, 34, 34)
-                .addComponent(jButton5)
+                .addComponent(planesRefresh)
                 .addGap(17, 17, 17))
         );
 
@@ -1332,11 +1333,11 @@ public class AirportFrame extends javax.swing.JFrame {
         });
         jScrollPane5.setViewportView(locationsTable);
 
-        jButton6.setFont(new java.awt.Font("Yu Gothic UI", 0, 18)); // NOI18N
-        jButton6.setText("Refresh");
-        jButton6.addActionListener(new java.awt.event.ActionListener() {
+        locationsRefresh.setFont(new java.awt.Font("Yu Gothic UI", 0, 18)); // NOI18N
+        locationsRefresh.setText("Refresh");
+        locationsRefresh.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton6ActionPerformed(evt);
+                locationsRefreshActionPerformed(evt);
             }
         });
 
@@ -1348,7 +1349,7 @@ public class AirportFrame extends javax.swing.JFrame {
                 .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel11Layout.createSequentialGroup()
                         .addGap(508, 508, 508)
-                        .addComponent(jButton6))
+                        .addComponent(locationsRefresh))
                     .addGroup(jPanel11Layout.createSequentialGroup()
                         .addGap(226, 226, 226)
                         .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 652, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -1360,7 +1361,7 @@ public class AirportFrame extends javax.swing.JFrame {
                 .addContainerGap(48, Short.MAX_VALUE)
                 .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(31, 31, 31)
-                .addComponent(jButton6)
+                .addComponent(locationsRefresh)
                 .addGap(17, 17, 17))
         );
 
@@ -1481,30 +1482,45 @@ public class AirportFrame extends javax.swing.JFrame {
     private void administratorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_administratorActionPerformed
         if (user.isSelected()) {
             user.setSelected(false);
-            userSelect.setSelectedIndex(0); // Restablecer JComboBox de usuario
-            addFlightID.setText("");      // Limpiar campo de ID para "Add to flight"
-            updateID.setText("");         // Limpiar campo de ID para "Update info"
         }
+        userSelect.setSelectedIndex(0);
+        addFlightID.setText("");
+        updateID.setText("");
+
         // Habilitar todas las pestañas de administrador
-        for (int i = 1; i < myFlightsTable.getTabCount(); i++) {
-            myFlightsTable.setEnabledAt(i, true);
-        }
+        myFlightsTable.setEnabledAt(1, true);  // Passenger registration
+        myFlightsTable.setEnabledAt(2, true);  // Airplane registration
+        myFlightsTable.setEnabledAt(3, true);  // Location registration
+        myFlightsTable.setEnabledAt(4, true);  // Flight registration
+        myFlightsTable.setEnabledAt(8, true);  // Show all passengers
+        myFlightsTable.setEnabledAt(9, true);  // Show all flights
+        myFlightsTable.setEnabledAt(10, true); // Show all planes
+        myFlightsTable.setEnabledAt(11, true); // Show all locations
+        myFlightsTable.setEnabledAt(12, true); // Delay flight
+
         // Deshabilitar pestañas específicas de usuario
         myFlightsTable.setEnabledAt(5, false); // "Update info" (Índice 5)
         myFlightsTable.setEnabledAt(6, false); // "Add to flight" (Índice 6)
         myFlightsTable.setEnabledAt(7, false); // "Show my flights" (Índice 7)
-
     }//GEN-LAST:event_administratorActionPerformed
 
     private void userActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_userActionPerformed
         if (administrator.isSelected()) {
             administrator.setSelected(false);
         }
-        // Deshabilitar todas las pestañas por defecto cuando se selecciona "User"
-        // excepto la primera (Administration)
+        // Al seleccionar el ROL "User", deshabilitamos la mayoría de las pestañas inicialmente.
         for (int i = 1; i < myFlightsTable.getTabCount(); i++) {
             myFlightsTable.setEnabledAt(i, false);
         }
+
+        // Pestañas que se habilitan para el ROL "User" incluso sin un ID de pasajero específico:
+        // myFlightsTable.setEnabledAt(1, true);  // Passenger registration (se controlará en userSelectActionPerformed)
+        myFlightsTable.setEnabledAt(9, true);  // Show all flights
+        myFlightsTable.setEnabledAt(10, true); // Show all planes
+        myFlightsTable.setEnabledAt(11, true); // Show all locations
+
+        userSelectActionPerformed(null);
+
     }//GEN-LAST:event_userActionPerformed
 
     private void passengerCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_passengerCreateActionPerformed
@@ -1695,56 +1711,90 @@ public class AirportFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_flightCreateActionPerformed
 
     private void updateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateActionPerformed
-        // TODO add your handling code here:
-        long id = Long.parseLong(updateID.getText());
+        String idStr = updateID.getText(); // Este ID viene del usuario seleccionado, no es editable por el usuario aquí.
         String firstname = updateName.getText();
         String lastname = updateSurname.getText();
-        int year = Integer.parseInt(updateYear.getText());
-        int month = Integer.parseInt(passengerMonth.getItemAt(updateMonth.getSelectedIndex()));
-        int day = Integer.parseInt(passengerDay.getItemAt(updateDay.getSelectedIndex()));
-        int phoneCode = Integer.parseInt(updateCCode.getText());
-        long phone = Long.parseLong(updatePhone.getText());
+
+        String yearStr = updateYear.getText();
+        String monthStr = updateMonth.getSelectedItem() != null ? updateMonth.getSelectedItem().toString() : null;
+        String dayStr = updateDay.getSelectedItem() != null ? updateDay.getSelectedItem().toString() : null;
+
+        String phoneCodeStr = updateCCode.getText();
+        String phoneStr = updatePhone.getText();
         String country = updateCountry.getText();
 
-        LocalDate birthDate = LocalDate.of(year, month, day);
+        // Manejo de placeholders para mes y día si es necesario (si tienen "Month", "Day" como items)
+        if ("Month".equals(monthStr)) {
+            monthStr = null;
+        }
+        if ("Day".equals(dayStr)) {
+            dayStr = null;
+        }
 
-//        Passenger passenger = null;
-//        for (Passenger p : this.passengers) {
-//            if (p.getId() == id) {
-//                passenger = p;
-//            }
-//        }
-//
-    ////        passenger.setFirstname(firstname);
-//        passenger.setLastname(lastname);
-//        passenger.setBirthDate(birthDate);
-//        passenger.setCountryPhoneCode(phoneCode);
-//        passenger.setPhone(phone);
-//        passenger.setCountry(country);
+        if (idStr == null || idStr.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No passenger selected for update. Please select a user first.", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Response response = PassengerController.updatePassenger(idStr, firstname, lastname, yearStr, monthStr, dayStr, phoneCodeStr, phoneStr, country);
+
+        if (response.getStatus() >= 500) {
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Error " + response.getStatus(), JOptionPane.ERROR_MESSAGE);
+        } else if (response.getStatus() >= 400) {
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Warning " + response.getStatus(), JOptionPane.WARNING_MESSAGE);
+        } else { // Status.OK
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Success", JOptionPane.INFORMATION_MESSAGE);
+            // Limpiar campos del formulario de actualización (excepto el ID que es de solo lectura)
+            updateName.setText("");
+            updateSurname.setText("");
+            updateYear.setText("");
+            updateMonth.setSelectedIndex(0); // Asumiendo que el primer item es el placeholder
+            updateDay.setSelectedIndex(0);   // Asumiendo que el primer item es el placeholder
+            updateCCode.setText("");
+            updatePhone.setText("");
+            updateCountry.setText("");
+
+            // Opcional: podrías querer refrescar la tabla de pasajeros si está visible y mostrando este pasajero
+            passengersRefreshActionPerformed(null); // Para refrescar la tabla de todos los pasajeros
+        }
     }//GEN-LAST:event_updateActionPerformed
 
     private void addFlightActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addFlightActionPerformed
-        // TODO add your handling code here:
-//        long passengerId = Long.parseLong(addFlightID.getText());
-//        String flightId = addFlightSelect.getItemAt(addFlightSelect.getSelectedIndex());
-//
-//        Passenger passenger = null;
-//        Flight flight = null;
-//
-//        for (Passenger p : this.passengers) {
-//            if (p.getId() == passengerId) {
-//                passenger = p;
-//            }
-//        }
-//
-//        for (Flight f : this.flights) {
-//            if (flightId.equals(f.getId())) {
-//                flight = f;
-//            }
-//        }
-//
-//        passenger.addFlight(flight);
-//        flight.addPassenger(passenger);
+        String passengerIdStr = addFlightID.getText(); // ID del pasajero seleccionado (no editable)
+        String flightIdStr = addFlightSelect.getSelectedItem() != null ? addFlightSelect.getSelectedItem().toString() : null;
+
+        if (passengerIdStr == null || passengerIdStr.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No passenger selected. Please select a user first.", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (flightIdStr == null || flightIdStr.equals("Flight")) { // "Flight" es el placeholder
+            JOptionPane.showMessageDialog(this, "Please select a flight.", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Response response = PassengerController.addPassengerToFlight(passengerIdStr, flightIdStr);
+
+        if (response.getStatus() >= 500) {
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Error " + response.getStatus(), JOptionPane.ERROR_MESSAGE);
+        } else if (response.getStatus() >= 400) {
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Warning " + response.getStatus(), JOptionPane.WARNING_MESSAGE);
+        } else { // Status.OK
+            JOptionPane.showMessageDialog(this, response.getMessage(), "Success", JOptionPane.INFORMATION_MESSAGE);
+            addFlightSelect.setSelectedIndex(0); // Restablecer selección de vuelo
+
+            // Opcional: Refrescar la tabla "Show my flights" si está visible y es el usuario actual
+            if (myFlightsTable.getSelectedIndex() == 7 && userSelect.getSelectedItem().toString().equals(passengerIdStr)) {
+                flightsRefreshActionPerformed(null); // Refresca "Show my flights"
+            }
+            // Opcional: Refrescar la tabla de "Show all flights" para ver el número actualizado de pasajeros
+            // if (myFlightsTable.getSelectedIndex() == 9) { // Índice de "Show all flights"
+            //    jButton4ActionPerformed(null);
+            // }
+            // Opcional: Refrescar la tabla de "Show all passengers" para ver el número de vuelos actualizado
+            // if (myFlightsTable.getSelectedIndex() == 8) { // Índice de "Show all passengers"
+            //    jButton3ActionPerformed(null);
+            // }
+        }
     }//GEN-LAST:event_addFlightActionPerformed
 
     private void delayCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_delayCreateActionPerformed
@@ -1780,137 +1830,188 @@ public class AirportFrame extends javax.swing.JFrame {
 
     }//GEN-LAST:event_delayCreateActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
-//        long passengerId = Long.parseLong(userSelect.getItemAt(userSelect.getSelectedIndex()));
-//
-//        Passenger passenger = null;
-//        for (Passenger p : this.passengers) {
-//            if (p.getId() == passengerId) {
-//                passenger = p;
-//            }
-//        }
-//
-//        ArrayList<Flight> flights = passenger.getFlights();
-//        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-//        model.setRowCount(0);
-//        for (Flight flight : flights) {
-//            model.addRow(new Object[]{flight.getId(), flight.getDepartureDate(), flight.calculateArrivalDate()});
-//        }
-    }//GEN-LAST:event_jButton2ActionPerformed
+    private void flightsRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_flightsRefreshActionPerformed
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        model.setRowCount(0); // Limpiar tabla
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-//        // TODO add your handling code here:
-//        DefaultTableModel model = (DefaultTableModel) passengersTable.getModel();
-//        model.setRowCount(0);
-//        for (Passenger passenger : this.passengers) {
-//            model.addRow(new Object[]{passenger.getId(), passenger.getFullname(), passenger.getBirthDate(), passenger.calculateAge(), passenger.generateFullPhone(), passenger.getCountry(), passenger.getNumFlights()});
-//        }
-    }//GEN-LAST:event_jButton3ActionPerformed
+        String selectedPassengerIdStr = userSelect.getSelectedItem().toString();
+        if (selectedPassengerIdStr.equals("Select User")) {
+            JOptionPane.showMessageDialog(this, "Please select a user first.", "Information", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
 
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-//        // TODO add your handling code here:
-//        DefaultTableModel model = (DefaultTableModel) flightsTable.getModel();
-//        model.setRowCount(0);
-//        for (Flight flight : this.flights) {
-//            model.addRow(new Object[]{flight.getId(), flight.getDepartureLocation().getAirportId(), flight.getArrivalLocation().getAirportId(), (flight.getScaleLocation() == null ? "-" : flight.getScaleLocation().getAirportId()), flight.getDepartureDate(), flight.calculateArrivalDate(), flight.getPlane().getId(), flight.getNumPassengers()});
-//        }
-    }//GEN-LAST:event_jButton4ActionPerformed
-
-    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
-        // TODO add your handling code here:
-//        DefaultTableModel model = (DefaultTableModel) planesTable.getModel();
-//        model.setRowCount(0);
-//        for (Plane plane : this.planes) {
-//            model.addRow(new Object[]{plane.getId(), plane.getBrand(), plane.getModel(), plane.getMaxCapacity(), plane.getAirline(), plane.getNumFlights()});
-//        }
-    }//GEN-LAST:event_jButton5ActionPerformed
-
-    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        // TODO add your handling code here:
-//        DefaultTableModel model = (DefaultTableModel) locationsTable.getModel();
-//        model.setRowCount(0);
-//        for (Location location : this.locations) {
-//            model.addRow(new Object[]{location.getAirportId(), location.getAirportName(), location.getAirportCity(), location.getAirportCountry()});
-//        }
-    }//GEN-LAST:event_jButton6ActionPerformed
-
-    private void jButton13ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton13ActionPerformed
-        System.exit(0);
-    }//GEN-LAST:event_jButton13ActionPerformed
-
-    private void userSelectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_userSelectActionPerformed
         try {
-            String selectedUserId = userSelect.getSelectedItem().toString();
-            boolean isActualUserSelected = !selectedUserId.equals("Select User") && user.isSelected();
-
-            // Habilitar/deshabilitar pestañas basadas en la selección de usuario
-            myFlightsTable.setEnabledAt(5, isActualUserSelected); // "Update info" (Índice 5)
-            myFlightsTable.setEnabledAt(6, isActualUserSelected); // "Add to flight" (Índice 6)
-            myFlightsTable.setEnabledAt(7, isActualUserSelected); // "Show my flights" (Índice 7)
-
-            if (isActualUserSelected) {
-                updateID.setText(selectedUserId);
-                addFlightID.setText(selectedUserId);
-            } else {
-                updateID.setText("");
-                addFlightID.setText("");
-                if (user.isSelected()) { // Si el rol es usuario pero no hay un ID seleccionado
-                    // Mantener deshabilitadas las pestañas que requieren un ID
-                    myFlightsTable.setEnabledAt(5, false);
-                    myFlightsTable.setEnabledAt(6, false);
-                    myFlightsTable.setEnabledAt(7, false);
+            long passengerId = Long.parseLong(selectedPassengerIdStr);
+            Storage storage = Storage.getInstance();
+            Passenger selectedPassenger = null;
+            for (Passenger p : storage.getPassengers()) {
+                if (p.getId() == passengerId) {
+                    selectedPassenger = p;
+                    break;
                 }
             }
 
-            // Pestañas que el rol "User" podría ver independientemente de un ID específico (si aplica)
-            // Asegúrate de que esto esté alineado con la lógica de userActionPerformed
-            if (user.isSelected()) {
-                // Ejemplo: Habilitar "Show all flights" y "Show all locations" si el rol es User
-                // myFlightsTable.setEnabledAt(9, true);  // Show all flights
-                // myFlightsTable.setEnabledAt(11, true); // Show all locations
-                // Estas ya estaban habilitadas en tu código de userActionPerformed,
-                // pero si dependen de un ID de usuario, deben estar dentro del if(isActualUserSelected)
-                // Si son generales para el rol "User", está bien aquí.
+            if (selectedPassenger != null) {
+                ArrayList<Flight> passengerFlights = new ArrayList<>(selectedPassenger.getFlights()); // Crear copia para ordenar
+                // Ordenar vuelos del pasajero por fecha de salida (más antiguos a más nuevos)
+                passengerFlights.sort(Comparator.comparing(Flight::getDepartureDate));
 
-                // Según tu código original, estas dos se habilitaban en userActionPerformed:
-                // myFlightsTable.setEnabledAt(9, true); // Show all flights (índice 9)
-                // myFlightsTable.setEnabledAt(11, true); // Delay Flight (índice 12) o Show All Locations (índice 11)
-                // tu userActionPerformed original decía 11, que es Show all Locations.
-                // y también 9 (Show all flights)
-                // Vamos a mantener la lógica que tenías, pero considera si esto es lo deseado.
-                myFlightsTable.setEnabledAt(8, true); // Show all passengers (Índice 8) (Esta la tenías como 7 en tu código original, pero 7 es "Show my flights")
-                // Revisando tu userActionPerformed, tenías:
-                // myFlightsTable.setEnabledAt(9, true); -> Show all flights
-                // myFlightsTable.setEnabledAt(5, true); -> Update info
-                // myFlightsTable.setEnabledAt(6, true); -> Add to flight
-                // myFlightsTable.setEnabledAt(7, true); -> Show my flights
-                // myFlightsTable.setEnabledAt(11, true); -> Show all locations
-                // La habilitación de 5, 6, 7 ya se hace arriba basado en isActualUserSelected.
-                // Habilitaremos las otras que tenías para el rol usuario.
-                myFlightsTable.setEnabledAt(9, true);  // Show all flights (Índice 9)
-                myFlightsTable.setEnabledAt(11, true); // Show all locations (Índice 11)
-                // myFlightsTable.setEnabledAt(12, true); // Delay Flight (Índice 12) ¿Debería estar aquí? En tu userActionPerformed original no estaba para el usuario.
-
+                for (Flight flight : passengerFlights) {
+                    Object[] row = new Object[3];
+                    row[0] = flight.getId();
+                    row[1] = flight.getDepartureDate().format(dateTimeFormatter);
+                    row[2] = flight.calculateArrivalDate().format(dateTimeFormatter);
+                    model.addRow(row);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Selected user not found.", "Error", JOptionPane.ERROR_MESSAGE);
             }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Invalid user ID selected.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
 
-        } catch (NullPointerException e) {
-            // Esto puede ocurrir si userSelect.getSelectedItem() es null al inicio.
-            // Normalmente no debería pasar si el modelo tiene al menos un item.
-            myFlightsTable.setEnabledAt(5, false);
-            myFlightsTable.setEnabledAt(6, false);
-            myFlightsTable.setEnabledAt(7, false);
-            updateID.setText("");
-            addFlightID.setText("");
-        } catch (Exception e) {
-            // Manejar otras posibles excepciones, por ejemplo, si el JComboBox está vacío.
-            System.err.println("Error en userSelectActionPerformed: " + e.getMessage());
-            myFlightsTable.setEnabledAt(5, false);
-            myFlightsTable.setEnabledAt(6, false);
-            myFlightsTable.setEnabledAt(7, false);
+    }//GEN-LAST:event_flightsRefreshActionPerformed
+
+    private void passengersRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_passengersRefreshActionPerformed
+        DefaultTableModel model = (DefaultTableModel) passengersTable.getModel();
+        model.setRowCount(0);
+
+        Storage storage = Storage.getInstance();
+        ArrayList<Passenger> passengers = new ArrayList<>(storage.getPassengers()); // Crear copia para ordenar
+
+        // Ordenar pasajeros por ID
+        passengers.sort(Comparator.comparingLong(Passenger::getId));
+
+        for (Passenger passenger : passengers) {
+            Object[] row = new Object[7];
+            row[0] = passenger.getId();
+            row[1] = passenger.getFullname(); // Asumiendo que existe este método en Passenger
+            row[2] = passenger.getBirthDate().format(dateFormatter);
+            row[3] = passenger.calculateAge(); // Asumiendo que existe este método en Passenger
+            row[4] = passenger.generateFullPhone(); // Asumiendo que existe este método en Passenger
+            row[5] = passenger.getCountry();
+            row[6] = passenger.getNumFlights(); // Asumiendo que existe este método en Passenger
+            model.addRow(row);
+        }
+
+    }//GEN-LAST:event_passengersRefreshActionPerformed
+
+    private void generalFlightsRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_generalFlightsRefreshActionPerformed
+        DefaultTableModel model = (DefaultTableModel) flightsTable.getModel();
+        model.setRowCount(0);
+
+        Storage storage = Storage.getInstance();
+        ArrayList<Flight> flights = new ArrayList<>(storage.getFlights());
+
+        // Ordenar vuelos por fecha de salida (más antiguos a más nuevos)
+        flights.sort(Comparator.comparing(Flight::getDepartureDate));
+
+        for (Flight flight : flights) {
+            Object[] row = new Object[8];
+            row[0] = flight.getId();
+            row[1] = (flight.getDepartureLocation() != null) ? flight.getDepartureLocation().getAirportId() : "-";
+            row[2] = (flight.getArrivalLocation() != null) ? flight.getArrivalLocation().getAirportId() : "-";
+            row[3] = (flight.getScaleLocation() != null) ? flight.getScaleLocation().getAirportId() : "-";
+            row[4] = flight.getDepartureDate().format(dateTimeFormatter);
+            row[5] = flight.calculateArrivalDate().format(dateTimeFormatter);
+            row[6] = (flight.getPlane() != null) ? flight.getPlane().getId() : "-";
+            row[7] = flight.getNumPassengers(); // Asumiendo que existe este método en Flight
+            model.addRow(row);
+        }
+
+    }//GEN-LAST:event_generalFlightsRefreshActionPerformed
+
+    private void planesRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_planesRefreshActionPerformed
+        DefaultTableModel model = (DefaultTableModel) planesTable.getModel();
+        model.setRowCount(0);
+
+        Storage storage = Storage.getInstance();
+        ArrayList<Plane> planes = new ArrayList<>(storage.getPlanes());
+
+        // Ordenar aviones por ID
+        planes.sort(Comparator.comparing(Plane::getId));
+
+        for (Plane plane : planes) {
+            Object[] row = new Object[6];
+            row[0] = plane.getId();
+            row[1] = plane.getBrand();
+            row[2] = plane.getModel();
+            row[3] = plane.getMaxCapacity();
+            row[4] = plane.getAirline();
+            row[5] = plane.getNumFlights(); // Asumiendo que existe este método en Plane
+            model.addRow(row);
+        }
+
+    }//GEN-LAST:event_planesRefreshActionPerformed
+
+    private void locationsRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_locationsRefreshActionPerformed
+        DefaultTableModel model = (DefaultTableModel) locationsTable.getModel();
+        model.setRowCount(0);
+
+        Storage storage = Storage.getInstance();
+        ArrayList<Location> locations = new ArrayList<>(storage.getLocations());
+
+        // Ordenar localizaciones por Airport ID
+        locations.sort(Comparator.comparing(Location::getAirportId));
+
+        for (Location location : locations) {
+            Object[] row = new Object[4];
+            row[0] = location.getAirportId();
+            row[1] = location.getAirportName();
+            row[2] = location.getAirportCity();
+            row[3] = location.getAirportCountry();
+            model.addRow(row);
+        }
+
+    }//GEN-LAST:event_locationsRefreshActionPerformed
+
+    private void exitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitActionPerformed
+        System.exit(0);
+    }//GEN-LAST:event_exitActionPerformed
+
+    private void userSelectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_userSelectActionPerformed
+        try {
+        String selectedValue = userSelect.getSelectedItem() != null ? userSelect.getSelectedItem().toString() : "Select User";
+        boolean isActualUserSelected = !selectedValue.equals("Select User") && user.isSelected();
+
+        // Pestaña "Passenger registration" (índice 1):
+        // Habilitada si el rol es "User" Y NINGÚN usuario específico está seleccionado.
+        // Deshabilitada si un usuario específico ESTÁ seleccionado (o si el rol no es "User").
+        if (user.isSelected()) {
+            myFlightsTable.setEnabledAt(1, !isActualUserSelected);
+        } else { // Si el rol no es "User" (es decir, es Admin o ninguno), el Admin lo controla.
+             // administratorActionPerformed ya habilita la pestaña 1 para el admin.
+             // Si ningún rol está seleccionado, permanece deshabilitada por el estado inicial.
+            myFlightsTable.setEnabledAt(1, administrator.isSelected());
+        }
+
+
+        // Pestañas específicas de un ID de pasajero
+        myFlightsTable.setEnabledAt(5, isActualUserSelected); // "Update info" 
+        myFlightsTable.setEnabledAt(6, isActualUserSelected); // "Add to flight"
+        myFlightsTable.setEnabledAt(7, isActualUserSelected); // "Show my flights"
+
+        if (isActualUserSelected) {
+            updateID.setText(selectedValue);
+            addFlightID.setText(selectedValue);
+        } else {
             updateID.setText("");
             addFlightID.setText("");
         }
+        
+        // Las pestañas generales para el ROL "User" (9, 10, 11) ya se habilitaron en userActionPerformed.
+        // No es necesario tocarlas aquí a menos que su lógica cambie.
+
+    } catch (Exception e) {
+        System.err.println("Error en userSelectActionPerformed: " + e.getMessage());
+        myFlightsTable.setEnabledAt(1, false); // Estado seguro en caso de error
+        myFlightsTable.setEnabledAt(5, false);
+        myFlightsTable.setEnabledAt(6, false);
+        myFlightsTable.setEnabledAt(7, false);
+        updateID.setText("");
+        addFlightID.setText("");
+    }
+
     }//GEN-LAST:event_userSelectActionPerformed
 
     /**
@@ -1935,16 +2036,13 @@ public class AirportFrame extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> departureLocation;
     private javax.swing.JComboBox<String> departureMonth;
     private javax.swing.JTextField departureYear;
+    private javax.swing.JButton exit;
     private javax.swing.JButton flightCreate;
     private javax.swing.JTextField flightID;
     private javax.swing.JComboBox<String> flightPlane;
+    private javax.swing.JButton flightsRefresh;
     private javax.swing.JTable flightsTable;
-    private javax.swing.JButton jButton13;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
-    private javax.swing.JButton jButton6;
+    private javax.swing.JButton generalFlightsRefresh;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -2019,6 +2117,7 @@ public class AirportFrame extends javax.swing.JFrame {
     private javax.swing.JTextField locationID;
     private javax.swing.JTextField locationLat;
     private javax.swing.JTextField locationLong;
+    private javax.swing.JButton locationsRefresh;
     private javax.swing.JTable locationsTable;
     private javax.swing.JTabbedPane myFlightsTable;
     private airport.Core.View.PanelRound panelRound1;
@@ -2034,6 +2133,7 @@ public class AirportFrame extends javax.swing.JFrame {
     private javax.swing.JTextField passengerPhone;
     private javax.swing.JTextField passengerSurname;
     private javax.swing.JTextField passengerYear;
+    private javax.swing.JButton passengersRefresh;
     private javax.swing.JTable passengersTable;
     private javax.swing.JTextField planeAirline;
     private javax.swing.JTextField planeBrand;
@@ -2041,6 +2141,7 @@ public class AirportFrame extends javax.swing.JFrame {
     private javax.swing.JTextField planeID;
     private javax.swing.JTextField planeMaxCap;
     private javax.swing.JTextField planeModel;
+    private javax.swing.JButton planesRefresh;
     private javax.swing.JTable planesTable;
     private javax.swing.JComboBox<String> scaleHour;
     private javax.swing.JComboBox<String> scaleLocation;
