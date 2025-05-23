@@ -45,14 +45,13 @@ public class Storage {
         String passengersPath = "json/passengers.json";
         String flightsPath = "json/flights.json";
 
-        // La asignación ahora es ArrayList = ArrayList, lo cual es correcto.
-        this.locations = loader.loadLocations(locationsPath);
-        this.planes = loader.loadPlanes(planesPath);
-        this.passengers = loader.loadPassengers(passengersPath);
-        this.flights = loader.loadFlights(flightsPath, this.planes, this.locations);
+        this.locations = loader.loadLocations(locationsPath); //
+        this.planes = loader.loadPlanes(planesPath); //
+        this.passengers = loader.loadPassengers(passengersPath); //
+        this.flights = loader.loadFlights(flightsPath, this.planes, this.locations); //
     }
 
-    public boolean addPassenger(Passenger x) { // Ya estaba en tu Storage.java
+    public boolean addPassenger(Passenger x) { 
         for (Passenger passenger : this.passengers) {
             if (x.getId() == passenger.getId()) {
                 System.err.println("Storage: Passenger with ID " + x.getId() + " already exists.");
@@ -63,26 +62,79 @@ public class Storage {
         return true;
     }
 
-    // Getters deben devolver ArrayList<Type>
+    // Getters que devuelven listas de CLONES usando bucles for-each
     public ArrayList<Plane> getPlanes() {
-        return planes;
+        if (this.planes == null) {
+            return new ArrayList<>();
+        }
+        ArrayList<Plane> clonedPlanes = new ArrayList<>();
+        for (Plane plane : this.planes) {
+            if (plane != null) {
+                try {
+                    clonedPlanes.add(plane.clone());
+                } catch (Exception e) { // Object.clone() es protected, pero nuestro Plane.clone() es public
+                                        // y maneja CloneNotSupportedException internamente.
+                    System.err.println("Error al clonar Plane con ID " + plane.getId() + ": " + e.getMessage());
+                    // Decide cómo manejar el error: no añadir, añadir null, o añadir el original (menos seguro)
+                }
+            }
+        }
+        return clonedPlanes;
     }
 
     public ArrayList<Passenger> getPassengers() {
-        return passengers;
+        if (this.passengers == null) {
+            return new ArrayList<>();
+        }
+        ArrayList<Passenger> clonedPassengers = new ArrayList<>();
+        for (Passenger passenger : this.passengers) {
+            if (passenger != null) {
+                try {
+                    clonedPassengers.add(passenger.clone());
+                } catch (Exception e) {
+                    System.err.println("Error al clonar Passenger con ID " + passenger.getId() + ": " + e.getMessage());
+                }
+            }
+        }
+        return clonedPassengers;
     }
 
     public ArrayList<Location> getLocations() {
-        return locations;
+        if (this.locations == null) {
+            return new ArrayList<>();
+        }
+        ArrayList<Location> clonedLocations = new ArrayList<>();
+        for (Location location : this.locations) {
+            if (location != null) {
+                try {
+                    clonedLocations.add(location.clone());
+                } catch (Exception e) {
+                    System.err.println("Error al clonar Location con ID " + location.getAirportId() + ": " + e.getMessage());
+                }
+            }
+        }
+        return clonedLocations;
     }
 
     public ArrayList<Flight> getFlights() {
-        return flights;
+        if (this.flights == null) {
+            return new ArrayList<>();
+        }
+        ArrayList<Flight> clonedFlights = new ArrayList<>();
+        for (Flight flight : this.flights) {
+            if (flight != null) {
+                try {
+                    clonedFlights.add(flight.clone());
+                } catch (Exception e) {
+                    System.err.println("Error al clonar Flight con ID " + flight.getId() + ": " + e.getMessage());
+                }
+            }
+        }
+        return clonedFlights;
     }
 
     // Métodos para añadir individuales (ejemplos)
     public void addPlane(Plane plane) {
-        // Comprobar si ya existe para evitar duplicados
         boolean exists = false;
         for (Plane p : this.planes) {
             if (p.getId().equals(plane.getId())) {
@@ -92,6 +144,8 @@ public class Storage {
         }
         if (!exists) {
             this.planes.add(plane);
+        } else {
+            System.err.println("Storage: Plane with ID " + plane.getId() + " already exists. Not added.");
         }
     }
 
@@ -105,6 +159,8 @@ public class Storage {
         }
         if (!exists) {
             this.locations.add(location);
+        } else {
+            System.err.println("Storage: Location with Airport ID " + location.getAirportId() + " already exists. Not added.");
         }
     }
 
@@ -118,6 +174,8 @@ public class Storage {
         }
         if (!exists) {
             this.flights.add(flight);
+        } else {
+            System.err.println("Storage: Flight with ID " + flight.getId() + " already exists. Not added.");
         }
     }
 }
