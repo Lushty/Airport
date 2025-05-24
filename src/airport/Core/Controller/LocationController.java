@@ -8,6 +8,9 @@ import airport.Core.Controller.Utils.Response;
 import airport.Core.Controller.Utils.Status;
 import airport.Core.Model.Location;
 import airport.Core.Model.Storage.Storage;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -101,5 +104,35 @@ public class LocationController {
         } catch (Exception ex) {
             return new Response("Unexpected error creating location: " + ex.getMessage(), Status.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public static ArrayList<String> getAllLocationAirportIds() {
+        Storage storage = Storage.getInstance();
+        ArrayList<Location> locations = storage.getLocations();
+        if (locations == null) {
+            return new ArrayList<>();
+        }
+        return locations.stream()
+                .map(Location::getAirportId)
+                .sorted()
+                .collect(Collectors.toCollection(ArrayList::new)); // Específicamente a ArrayList
+    }
+
+    public static ArrayList<Object[]> getAllLocationsForTable() {
+        Storage storage = Storage.getInstance();
+        ArrayList<Location> locations = storage.getLocations();
+        if (locations == null) {
+            return new ArrayList<>();
+        }
+        locations.sort(Comparator.comparing(Location::getAirportId));
+
+        return locations.stream()
+                .map(location -> new Object[]{
+            location.getAirportId(),
+            location.getAirportName(),
+            location.getAirportCity(),
+            location.getAirportCountry()
+        })
+                .collect(Collectors.toCollection(ArrayList::new)); // Específicamente a ArrayList
     }
 }
