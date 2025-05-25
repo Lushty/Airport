@@ -12,7 +12,7 @@ import java.util.ArrayList;
  * @author edangulo
  */
 public class Plane implements Cloneable { // Implementar Cloneable
-    
+
     private final String id;
     private String brand;
     private String model;
@@ -50,12 +50,13 @@ public class Plane implements Cloneable { // Implementar Cloneable
         }
     }
 
-//    public void addFlight(Flight flight) {
-//        if (!this.flights.contains(flight)) {
-//            this.flights.add(flight);
-//        }
-//    }
-    
+// En Plane.java
+    public void addFlight(Flight flight) {
+        if (flight != null && !this.flights.contains(flight)) { // 'this.flights' es la lista interna
+            this.flights.add(flight);
+        }
+    }
+
     public String getId() {
         return id;
     }
@@ -80,7 +81,7 @@ public class Plane implements Cloneable { // Implementar Cloneable
         // Devolver una copia de la lista
         return new ArrayList<>(flights);
     }
-    
+
     public int getNumFlights() {
         return flights.size();
     }

@@ -173,13 +173,9 @@ public class DataLoader {
                             plane,
                             departureLoc,
                             scaleLoc,
-                            arrivalLoc,
                             departureDate,
                             fJson.getInt("hoursDurationArrival"),
-                            fJson.getInt("minutesDurationArrival"),
-                            fJson.getInt("hoursDurationScale"),
-                            fJson.getInt("minutesDurationScale")
-                    );
+                            fJson.getInt("minutesDurationArrival"));
                 } else {
                     flight = new Flight(
                             fJson.getString("id"),

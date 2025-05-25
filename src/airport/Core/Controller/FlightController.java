@@ -184,9 +184,8 @@ public class FlightController {
             Flight newFlight;
             if (hasScale && scaleLocationObj != null) {
                 // Pass total travel time and layover time separately
-                newFlight = new Flight(trimmedFlightId, plane, departureLocation, scaleLocationObj, arrivalLocation,
-                        departureDateTime, parsedHoursDurationArrival, parsedMinutesDurationArrival,
-                        parsedHoursDurationScale, parsedMinutesDurationScale);
+                newFlight = new Flight(trimmedFlightId, plane, departureLocation, scaleLocationObj,
+                        departureDateTime, parsedHoursDurationArrival, parsedMinutesDurationArrival);
             } else {
                 // Constructor for no scale sets its scale durations to 0
                 newFlight = new Flight(trimmedFlightId, plane, departureLocation, arrivalLocation,

@@ -14,7 +14,7 @@ import java.util.ArrayList;
  * @author edangulo
  */
 public class Passenger implements Cloneable { // Implementar Cloneable
-    
+
     private final long id;
     private String firstname;
     private String lastname;
@@ -45,7 +45,7 @@ public class Passenger implements Cloneable { // Implementar Cloneable
         this.phone = original.phone;
         this.country = original.country;
         // Copia profunda de la lista de vuelos (conteniendo las mismas referencias a Flight)
-        this.flights = new ArrayList<>(original.flights); 
+        this.flights = new ArrayList<>(original.flights);
     }
 
     @Override
@@ -64,12 +64,12 @@ public class Passenger implements Cloneable { // Implementar Cloneable
         }
     }
 
-//    public void addFlight(Flight flight) {
-//        if (!this.flights.contains(flight)) {
-//            this.flights.add(flight);
-//        }
-//    }
-    
+    public void addFlight(Flight flight) {
+        if (flight != null && !this.flights.contains(flight)) { // 'this.flights' es la lista interna
+            this.flights.add(flight);
+        }
+    }
+
     public long getId() {
         return id;
     }
@@ -126,19 +126,19 @@ public class Passenger implements Cloneable { // Implementar Cloneable
     public void setCountry(String country) {
         this.country = country;
     }
-    
+
     public String getFullname() {
         return firstname + " " + lastname;
     }
-    
+
     public String generateFullPhone() {
         return "+" + countryPhoneCode + " " + phone;
     }
-    
+
     public int calculateAge() {
         return Period.between(birthDate, LocalDate.now()).getYears();
     }
-    
+
     public int getNumFlights() {
         return flights.size();
     }

@@ -29,7 +29,7 @@ public class Storage {
     private ArrayList<Passenger> passengers;
     private ArrayList<Location> locations;
     private ArrayList<Flight> flights;
-    
+
     private final FlightDelayHandler flightDelayHandler;
     private final FlightManager flightmanager;
     private final FlightPassengerManager flightPassengerManager;
@@ -39,7 +39,7 @@ public class Storage {
         this.passengers = new ArrayList<>();
         this.locations = new ArrayList<>();
         this.flights = new ArrayList<>();
-        
+
         this.flightDelayHandler = new FlightDelayHandlerNormal();
         this.flightmanager = new FlightManagerNormal();
         this.flightPassengerManager = new FlightPassengerManagerNormal();
@@ -61,10 +61,6 @@ public class Storage {
         this.flights = flights;
     }
 
-    
-        
-    
-
     public static synchronized Storage getInstance() {
         if (instance == null) {
             instance = new Storage();
@@ -84,7 +80,7 @@ public class Storage {
         this.planes = loader.loadPlanes(planesPath); //
         this.passengers = loader.loadPassengers(passengersPath); //
         this.flights = loader.loadFlights(flightsPath, this.planes, this.locations); //
-   }
+    }
 
     public boolean addPassenger(Passenger x) { // Ya retorna boolean
         for (Passenger passenger : this.passengers) {
@@ -207,8 +203,8 @@ public class Storage {
         // Si el Plane es parte del Flight, podemos hacer:
         if (flight.getPlane() != null) {
 //            flight.getPlane().addFlight(flight);
-           this.flightmanager.addFlight(flights, flight);// Asegurarse que el objeto Plane en storage sea el que se actualice
-            
+            this.flightmanager.addFlight(flights, flight);// Asegurarse que el objeto Plane en storage sea el que se actualice
+
             // o que addFlight en el Plane no opere sobre una copia.
             // Dado que flight.getPlane() devuelve la referencia directa (no un clon),
             // y el DataLoader enlaza las referencias originales, esto debería funcionar
@@ -226,9 +222,9 @@ public class Storage {
      * contrario.
      */
     /**
-     * Actualiza un pasajero existente en el almacenamiento.
-     * Modifica los campos del pasajero original con los datos del pasajero actualizado,
-     * preservando la lista de vuelos original a menos que se indique lo contrario.
+     * Actualiza un pasajero existente en el almacenamiento. Modifica los campos
+     * del pasajero original con los datos del pasajero actualizado, preservando
+     * la lista de vuelos original a menos que se indique lo contrario.
      *
      * @param passengerWithUpdates El pasajero con la información actualizada.
      * @return true si el pasajero fue encontrado y actualizado, false en caso
@@ -338,57 +334,56 @@ public class Storage {
     }
 
     public boolean associatePassengerWithFlight(long passengerId, String flightId) {
-        Passenger originalPassenger = null;
-        for (Passenger p : this.passengers) { // Iterar sobre la lista original
-            if (p.getId() == passengerId) {
-                originalPassenger = p;
-                break;
-            }
+            Passenger originalPassenger = null;
+    for (Passenger p : this.passengers) { // Iterar sobre la lista original
+        if (p.getId() == passengerId) {
+            originalPassenger = p;
+            break;
         }
-
-        Flight originalFlight = null;
-        for (Flight f : this.flights) { // Iterar sobre la lista original
-            if (f.getId().equals(flightId)) {
-                originalFlight = f;
-                break;
-            }
-        }
-
-        if (originalPassenger == null || originalFlight == null) {
-            System.err.println("Storage: Passenger or Flight not found for association.");
-            return false;
-        }
-
-        // Verificar capacidad (de nuevo, sobre el original)
-        if (originalFlight.getPlane() != null
-                && originalFlight.getNumPassengers() >= originalFlight.getPlane().getMaxCapacity()) {
-            System.err.println("Storage: Flight " + flightId + " is full.");
-            return false;
-        }
-
-        // Verificar si ya está asociado (sobre el original)
-        boolean alreadyAssociated = false;
-        for (Flight f : originalPassenger.getFlights()) { // getFlights() de Passenger devuelve copia, pero podemos chequear IDs
-            if (f.getId().equals(originalFlight.getId())) {
-                alreadyAssociated = true;
-                break;
-            }
-        }
-        if (alreadyAssociated) {
-            System.err.println("Storage: Passenger " + passengerId + " is already on flight " + flightId + " (original check).");
-            return false; // O manejarlo como éxito si la pre-condición es "asegurar que esté asociado"
-        }
-
-        // Realizar la asociación bidireccional en los objetos originales
-//        originalPassenger.addFlight(originalFlight);
-        this.flightmanager.addFlight(originalFlight.getPlane().getFlights(), originalFlight);
-        //this.flightManager.addFlight(originalFlight.getPlane().getFlights(), originalFlight);// Modifica la lista interna del Passenger original
-        this.flightPassengerManager.addPassenger(originalFlight.getPassengers(),originalPassenger); // Modifica la lista interna del Flight original
-        
-         
-
-        return true;
     }
+
+    Flight originalFlight = null;
+    for (Flight f : this.flights) { // Iterar sobre la lista original
+        if (f.getId().equals(flightId)) {
+            originalFlight = f;
+            break;
+        }
+    }
+
+    if (originalPassenger == null || originalFlight == null) {
+        System.err.println("Storage: Passenger or Flight not found for association.");
+        return false;
+    }
+
+    // Verificar capacidad (sobre el original)
+    if (originalFlight.getPlane() != null
+            && originalFlight.getNumPassengers() >= originalFlight.getPlane().getMaxCapacity()) { //
+        System.err.println("Storage: Flight " + flightId + " is full.");
+        return false;
+    }
+
+    // Verificar si el pasajero ya está en el vuelo (usando el método addPassenger que no añade duplicados)
+    // y si el vuelo ya está en la lista del pasajero (usando el método addFlight que no añade duplicados)
+    // Esto se maneja implícitamente si los métodos addPassenger/addFlight en los modelos evitan duplicados.
+
+    // Realizar la asociación bidireccional en los objetos originales
+    
+    // Paso 1: Añadir pasajero al vuelo (asumiendo que Flight.addPassenger está corregido)
+    originalFlight.addPassenger(originalPassenger); 
+
+    // Paso 2: Añadir vuelo al pasajero (asumiendo que Passenger.addFlight está corregido)
+    originalPassenger.addFlight(originalFlight); // <--- AQUÍ VA LA LÍNEA
+
+    // La línea que tenías antes con flightPassengerManager y flightManager ya no es necesaria aquí
+    // si los modelos gestionan sus propias listas internas a través de sus métodos add.
+    // this.flightmanager.addFlight(originalFlight.getPlane().getFlights(), originalFlight); // Esta línea tenía problemas si getFlights() devuelve copia
+    // this.flightPassengerManager.addPassenger(originalFlight.getPassengers(),originalPassenger); // Esta línea era la que causaba el error principal
+
+    System.out.println("Storage: Association attempt for P:" + passengerId + " F:" + flightId 
+        + ". Flight passengers now: " + originalFlight.getNumPassengers() 
+        + ". Passenger flights now: " + originalPassenger.getNumFlights()); //
+    return true;
+}
 
     /**
      * Retrasa un vuelo específico modificando su hora de salida. Opera
@@ -405,13 +400,12 @@ public class Storage {
             if (f.getId().equals(flightId)) {
 //                LocalDateTime x = FlightDelayHandler.delay(f.getDepartureDate(), hours, minutes); // Modifica el objeto Flight original directamente en la lista
 //                f.setDepartureDate(x);
-                  LocalDateTime x = this.flightDelayHandler.delay(f.getDepartureDate(), hours, minutes);
-                  f.setDepartureDate(x);
-                   }
-                return true;
+                LocalDateTime x = this.flightDelayHandler.delay(f.getDepartureDate(), hours, minutes);
+                f.setDepartureDate(x);
             }
-       
-        
+            return true;
+        }
+
         System.err.println("Storage: Flight with ID " + flightId + " not found for delay.");
         return false;
     }
