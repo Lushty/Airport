@@ -50,11 +50,11 @@ public class Plane implements Cloneable { // Implementar Cloneable
         }
     }
 
-    public void addFlight(Flight flight) {
-        if (!this.flights.contains(flight)) {
-            this.flights.add(flight);
-        }
-    }
+//    public void addFlight(Flight flight) {
+//        if (!this.flights.contains(flight)) {
+//            this.flights.add(flight);
+//        }
+//    }
     
     public String getId() {
         return id;

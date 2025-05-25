@@ -63,6 +63,24 @@ public class Flight implements Cloneable { // Implementar Cloneable
         // }
     }
     
+     public Flight(String id, ArrayList<Passenger> passengers , Plane plane, Location departureLocation, Location scaleLocation, Location arrivalLocation, LocalDateTime departureDate, int hoursDurationArrival, int minutesDurationArrival, int hoursDurationScale, int minutesDurationScale) {
+        this.id = id;
+        this.passengers = new ArrayList<>();
+        this.plane = plane; // Se asigna la referencia
+        this.departureLocation = departureLocation; // Se asigna la referencia
+        this.scaleLocation = scaleLocation; // Se asigna la referencia
+        this.arrivalLocation = arrivalLocation; // Se asigna la referencia
+        this.departureDate = departureDate;
+        this.hoursDurationArrival = hoursDurationArrival;
+        this.minutesDurationArrival = minutesDurationArrival;
+        this.hoursDurationScale = hoursDurationScale;
+        this.minutesDurationScale = minutesDurationScale;
+        
+        // if (this.plane != null) {
+        //     this.plane.addFlight(this);
+        // }
+    }
+    
     // Constructor de copia
     public Flight(Flight original) {
         this.id = original.id;
@@ -102,12 +120,12 @@ public class Flight implements Cloneable { // Implementar Cloneable
         }
     }
 
-    public void addPassenger(Passenger passenger) {
-        if (!this.passengers.contains(passenger)) {
-            this.passengers.add(passenger);
-        }
-    }
-    
+//    public void addPassenger(Passenger passenger) {
+//        if (!this.passengers.contains(passenger)) {
+//            this.passengers.add(passenger);
+//        }
+//    }
+//    
     public ArrayList<Passenger> getPassengers() {
         return new ArrayList<>(this.passengers); // Devolver copia
     }
@@ -164,9 +182,9 @@ public class Flight implements Cloneable { // Implementar Cloneable
         return arrival;
     }
     
-    public void delay(int hours, int minutes) {
-        this.departureDate = this.departureDate.plusHours(hours).plusMinutes(minutes);
-    }
+//    public void delay(int hours, int minutes) {
+//        this.departureDate = this.departureDate.plusHours(hours).plusMinutes(minutes);
+//    }
     
     public int getNumPassengers() {
         return passengers.size();
