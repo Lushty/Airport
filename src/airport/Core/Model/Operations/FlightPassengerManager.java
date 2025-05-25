@@ -6,6 +6,7 @@ package airport.Core.Model.Operations;
 
 import airport.Core.Model.Flight;
 import airport.Core.Model.Passenger;
+import java.util.List;
 import java.util.ArrayList;
 
 /**
@@ -14,6 +15,6 @@ import java.util.ArrayList;
  */
 public interface FlightPassengerManager {
     
-   public void addPassenger(ArrayList<Passenger> passengers, Passenger passenger);
+   public void addPassenger(List<Passenger> passengers, Passenger passenger);
    
 }

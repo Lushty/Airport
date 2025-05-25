@@ -6,6 +6,7 @@ package airport.Core.Model.Operations;
 
 import airport.Core.Model.Flight;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -14,7 +15,7 @@ import java.util.ArrayList;
 public class FlightManagerNormal implements FlightManager {
 
     @Override
-    public void addFlight(ArrayList<Flight> flights, Flight flight) {
+    public void addFlight(List<Flight> flights, Flight flight) {
         if (!flights.contains(flight)) {
             flights.add(flight);
         }
