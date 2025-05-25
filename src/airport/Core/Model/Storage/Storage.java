@@ -188,31 +188,25 @@ public class Storage {
 
     public boolean addFlight(Flight flight) { // Cambiar para retornar boolean
         for (Flight f : this.flights) {
-            if (f.getId().equals(flight.getId())) {
-                System.err.println("Storage: Flight with ID " + flight.getId() + " already exists. Not added.");
-                return false;
+        if (f.getId().equals(flight.getId())) {
+            System.err.println("Storage: Flight with ID " + flight.getId() + " already exists. Not added.");
+            return false;
+        }
+    }
+    this.flights.add(flight); // Añade a la lista general de vuelos
+
+    if (flight.getPlane() != null) {
+        Plane planeDelVuelo = flight.getPlane();
+        // Para encontrar el objeto Plane original en Storage y modificarlo:
+        for (Plane p : this.planes) {
+            if (p.getId().equals(planeDelVuelo.getId())) {
+                p.addFlight(flight); // Llama al método corregido en el objeto Plane original
+                break;
             }
         }
-        this.flights.add(flight);
-        // También, si el vuelo se añade, actualizar las listas de vuelos en el avión y pasajeros asociados
-        // Esto ya se maneja en los controladores cuando se añade un pasajero a un vuelo.
-        // Y el DataLoader también asocia los vuelos.
-        // Pero si un vuelo se crea y luego se asocia a un avión,
-        // la lista de vu elos del avión debe actualizarse.
-        // El modelo actual de Flight no añade automáticamente this al plane.flights en el constructor.
-        // Si el Plane es parte del Flight, podemos hacer:
-        if (flight.getPlane() != null) {
-//            flight.getPlane().addFlight(flight);
-            this.flightmanager.addFlight(flights, flight);// Asegurarse que el objeto Plane en storage sea el que se actualice
-
-            // o que addFlight en el Plane no opere sobre una copia.
-            // Dado que flight.getPlane() devuelve la referencia directa (no un clon),
-            // y el DataLoader enlaza las referencias originales, esto debería funcionar
-            // si Plane.addFlight() modifica la lista interna de ese Plane.
-        }
-        return true;
     }
-
+    return true;
+}
     // --- MÉTODOS DE ACTUALIZACIÓN (NUEVOS) ---
     /**
      * Actualiza un pasajero existente en el almacenamiento.
