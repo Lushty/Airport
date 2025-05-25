@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package airport.Core.Model.DataLoader;
+package airport.Core.Model.Data;
 
 import airport.Core.Model.Flight;
 import airport.Core.Model.Location;

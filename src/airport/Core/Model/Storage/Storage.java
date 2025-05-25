@@ -4,11 +4,18 @@
  */
 package airport.Core.Model.Storage;
 
-import airport.Core.Model.DataLoader.DataLoader;
+import airport.Core.Model.Data.DataLoader;
 import airport.Core.Model.Flight;
 import airport.Core.Model.Location;
+import airport.Core.Model.Operations.FlightDelayHandler;
+import airport.Core.Model.Operations.FlightDelayHandlerNormal;
+import airport.Core.Model.Operations.FlightPassengerManager;
+import airport.Core.Model.Operations.FlightManager;
+import airport.Core.Model.Operations.FlightManagerNormal;
+import airport.Core.Model.Operations.FlightPassengerManagerNormal;
 import airport.Core.Model.Passenger;
 import airport.Core.Model.Plane;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 /**
@@ -22,13 +29,41 @@ public class Storage {
     private ArrayList<Passenger> passengers;
     private ArrayList<Location> locations;
     private ArrayList<Flight> flights;
+    
+    private final FlightDelayHandler flightDelayHandler;
+    private final FlightManager flightmanager;
+    private final FlightPassengerManager flightPassengerManager;
 
     private Storage() {
         this.planes = new ArrayList<>();
         this.passengers = new ArrayList<>();
         this.locations = new ArrayList<>();
         this.flights = new ArrayList<>();
+        
+        this.flightDelayHandler = new FlightDelayHandlerNormal();
+        this.flightmanager = new FlightManagerNormal();
+        this.flightPassengerManager = new FlightPassengerManagerNormal();
     }
+
+    public void setPlanes(ArrayList<Plane> planes) {
+        this.planes = planes;
+    }
+
+    public void setPassengers(ArrayList<Passenger> passengers) {
+        this.passengers = passengers;
+    }
+
+    public void setLocations(ArrayList<Location> locations) {
+        this.locations = locations;
+    }
+
+    public void setFlights(ArrayList<Flight> flights) {
+        this.flights = flights;
+    }
+
+    
+        
+    
 
     public static synchronized Storage getInstance() {
         if (instance == null) {
@@ -49,7 +84,7 @@ public class Storage {
         this.planes = loader.loadPlanes(planesPath); //
         this.passengers = loader.loadPassengers(passengersPath); //
         this.flights = loader.loadFlights(flightsPath, this.planes, this.locations); //
-    }
+   }
 
     public boolean addPassenger(Passenger x) { // Ya retorna boolean
         for (Passenger passenger : this.passengers) {
@@ -167,11 +202,13 @@ public class Storage {
         // Esto ya se maneja en los controladores cuando se añade un pasajero a un vuelo.
         // Y el DataLoader también asocia los vuelos.
         // Pero si un vuelo se crea y luego se asocia a un avión,
-        // la lista de vuelos del avión debe actualizarse.
+        // la lista de vu elos del avión debe actualizarse.
         // El modelo actual de Flight no añade automáticamente this al plane.flights en el constructor.
         // Si el Plane es parte del Flight, podemos hacer:
         if (flight.getPlane() != null) {
-            flight.getPlane().addFlight(flight); // Asegurarse que el objeto Plane en storage sea el que se actualice
+//            flight.getPlane().addFlight(flight);
+           this.flightmanager.addFlight(flights, flight);// Asegurarse que el objeto Plane en storage sea el que se actualice
+            
             // o que addFlight en el Plane no opere sobre una copia.
             // Dado que flight.getPlane() devuelve la referencia directa (no un clon),
             // y el DataLoader enlaza las referencias originales, esto debería funcionar
@@ -343,8 +380,12 @@ public class Storage {
         }
 
         // Realizar la asociación bidireccional en los objetos originales
-        originalPassenger.addFlight(originalFlight); // Modifica la lista interna del Passenger original
-        originalFlight.addPassenger(originalPassenger); // Modifica la lista interna del Flight original
+//        originalPassenger.addFlight(originalFlight);
+        this.flightmanager.addFlight(originalFlight.getPlane().getFlights(), originalFlight);
+        //this.flightManager.addFlight(originalFlight.getPlane().getFlights(), originalFlight);// Modifica la lista interna del Passenger original
+        this.flightPassengerManager.addPassenger(originalFlight.getPassengers(),originalPassenger); // Modifica la lista interna del Flight original
+        
+         
 
         return true;
     }
@@ -362,10 +403,15 @@ public class Storage {
     public boolean delayFlightInStorage(String flightId, int hours, int minutes) {
         for (Flight f : this.flights) { // Itera sobre la lista original 'this.flights'
             if (f.getId().equals(flightId)) {
-                f.delay(hours, minutes); // Modifica el objeto Flight original directamente en la lista
+//                LocalDateTime x = FlightDelayHandler.delay(f.getDepartureDate(), hours, minutes); // Modifica el objeto Flight original directamente en la lista
+//                f.setDepartureDate(x);
+                  LocalDateTime x = this.flightDelayHandler.delay(f.getDepartureDate(), hours, minutes);
+                  f.setDepartureDate(x);
+                   }
                 return true;
             }
-        }
+       
+        
         System.err.println("Storage: Flight with ID " + flightId + " not found for delay.");
         return false;
     }
