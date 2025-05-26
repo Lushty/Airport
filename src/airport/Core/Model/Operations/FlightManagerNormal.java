@@ -4,6 +4,7 @@
  */
 package airport.Core.Model.Operations;
 
+import airport.Core.Model.Utils.FlightManager;
 import airport.Core.Model.Flight;
 import java.util.ArrayList;
 
