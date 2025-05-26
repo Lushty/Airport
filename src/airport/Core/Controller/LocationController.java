@@ -7,7 +7,7 @@ package airport.Core.Controller;
 import airport.Core.Controller.Utils.Response;
 import airport.Core.Controller.Utils.Status;
 import airport.Core.Model.Location;
-import airport.Core.Model.Storage.Storage;
+import airport.Core.Storage.Storage;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.stream.Collectors;
@@ -20,22 +20,20 @@ public class LocationController {
 
     private static boolean hasMaxDecimalPlaces(String value, int maxPlaces) {
         if (value == null || value.trim().isEmpty()) {
-            return true; // Or false based on requirement for empty strings
+            return true;
         }
         int decimalPointIndex = value.indexOf('.');
         if (decimalPointIndex == -1) {
-            return true; // No decimal part
+            return true;
         }
-        // Check if there are any non-digit characters after decimal point (except for sign at start if allowed)
         String decimals = value.substring(decimalPointIndex + 1);
         if (!decimals.matches("[0-9]+")) {
-            return false; // Invalid characters in decimal part
+            return false;
         }
         return decimals.length() <= maxPlaces;
     }
 
     public static Response createLocation(String airportId, String airportName, String airportCity, String airportCountry, String airportLatitudeStr, String airportLongitudeStr) {
-        // Validate Airport ID
         if (airportId == null || airportId.trim().isEmpty()) {
             return new Response("Airport ID cannot be empty.", Status.BAD_REQUEST);
         }
@@ -44,7 +42,6 @@ public class LocationController {
         }
         String trimmedAirportId = airportId.trim();
 
-        // Validate non-empty fields
         if (airportName == null || airportName.trim().isEmpty()) {
             return new Response("Airport name cannot be empty.", Status.BAD_REQUEST);
         }
@@ -55,7 +52,6 @@ public class LocationController {
             return new Response("Airport country cannot be empty.", Status.BAD_REQUEST);
         }
 
-        // Validate Latitude
         double airportLatitude;
         if (airportLatitudeStr == null || airportLatitudeStr.trim().isEmpty()) {
             return new Response("Latitude cannot be empty.", Status.BAD_REQUEST);
@@ -72,7 +68,6 @@ public class LocationController {
             return new Response("Latitude must be a valid number.", Status.BAD_REQUEST);
         }
 
-        // Validate Longitude
         double airportLongitude;
         if (airportLongitudeStr == null || airportLongitudeStr.trim().isEmpty()) {
             return new Response("Longitude cannot be empty.", Status.BAD_REQUEST);
@@ -90,7 +85,6 @@ public class LocationController {
         }
 
         Storage storage = Storage.getInstance();
-        // Check for uniqueness
         for (Location loc : storage.getLocations()) {
             if (loc.getAirportId().equals(trimmedAirportId)) {
                 return new Response("An airport with ID '" + trimmedAirportId + "' already exists.", Status.BAD_REQUEST);
@@ -115,7 +109,7 @@ public class LocationController {
         return locations.stream()
                 .map(Location::getAirportId)
                 .sorted()
-                .collect(Collectors.toCollection(ArrayList::new)); // Específicamente a ArrayList
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     public static ArrayList<Object[]> getAllLocationsForTable() {
@@ -133,6 +127,6 @@ public class LocationController {
             location.getAirportCity(),
             location.getAirportCountry()
         })
-                .collect(Collectors.toCollection(ArrayList::new)); // Específicamente a ArrayList
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 }

@@ -7,7 +7,7 @@ package airport.Core.Controller;
 import airport.Core.Controller.Utils.Response;
 import airport.Core.Controller.Utils.Status;
 import airport.Core.Model.Plane;
-import airport.Core.Model.Storage.Storage;
+import airport.Core.Storage.Storage;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.stream.Collectors;
@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 public class PlaneController {
 
     public static Response createPlane(String id, String brand, String model, String maxCapacityStr, String airline) {
-        // Validate ID
         if (id == null || id.trim().isEmpty()) {
             return new Response("Plane ID cannot be empty.", Status.BAD_REQUEST);
         }
@@ -28,7 +27,6 @@ public class PlaneController {
         }
         String trimmedId = id.trim();
 
-        // Validate non-empty fields
         if (brand == null || brand.trim().isEmpty()) {
             return new Response("Brand cannot be empty.", Status.BAD_REQUEST);
         }
@@ -39,7 +37,6 @@ public class PlaneController {
             return new Response("Airline cannot be empty.", Status.BAD_REQUEST);
         }
 
-        // Validate and parse Max Capacity
         int maxCapacity;
         if (maxCapacityStr == null || maxCapacityStr.trim().isEmpty()) {
             return new Response("Maximum capacity cannot be empty.", Status.BAD_REQUEST);
@@ -54,7 +51,6 @@ public class PlaneController {
         }
 
         Storage storage = Storage.getInstance();
-        // Check for uniqueness
         for (Plane p : storage.getPlanes()) {
             if (p.getId().equals(trimmedId)) {
                 return new Response("A plane with ID '" + trimmedId + "' already exists.", Status.BAD_REQUEST);
@@ -79,7 +75,7 @@ public class PlaneController {
         return planes.stream()
                 .map(Plane::getId)
                 .sorted()
-                .collect(Collectors.toCollection(ArrayList::new)); // Específicamente a ArrayList
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     public static ArrayList<Object[]> getAllPlanesForTable() {
@@ -99,6 +95,6 @@ public class PlaneController {
             plane.getAirline(),
             plane.getNumFlights()
         })
-                .collect(Collectors.toCollection(ArrayList::new)); // Específicamente a ArrayList
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 }

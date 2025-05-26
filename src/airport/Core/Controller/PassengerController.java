@@ -7,7 +7,7 @@ package airport.Core.Controller;
 import airport.Core.Controller.Utils.Response;
 import airport.Core.Controller.Utils.Status;
 import airport.Core.Model.Flight;
-import airport.Core.Model.Storage.Storage;
+import airport.Core.Storage.Storage;
 import airport.Core.Model.Passenger;
 import java.time.DateTimeException;
 import java.time.LocalDate;
@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 public class PassengerController {
 
     private static Response validatePassengerData(String idStr, String firstname, String lastname, String yearStr, String monthStr, String dayStr, String phoneCodeStr, String phoneStr, String country, boolean isUpdate) {
-        // Validate ID
         long idD;
         if (idStr == null || idStr.trim().isEmpty()) {
             return new Response("Passenger ID cannot be empty.", Status.BAD_REQUEST);
@@ -34,14 +33,13 @@ public class PassengerController {
             if (idD < 0) {
                 return new Response("Passenger ID must be non-negative.", Status.BAD_REQUEST);
             }
-            if (idStr.trim().length() > 15) { // Check original string length for digits
+            if (idStr.trim().length() > 15) {
                 return new Response("Passenger ID must have at most 15 digits.", Status.BAD_REQUEST);
             }
         } catch (NumberFormatException ex) {
             return new Response("Passenger ID must be a valid number.", Status.BAD_REQUEST);
         }
 
-        // Validate non-empty fields
         if (firstname == null || firstname.trim().isEmpty()) {
             return new Response("First name cannot be empty.", Status.BAD_REQUEST);
         }
@@ -52,7 +50,6 @@ public class PassengerController {
             return new Response("Country cannot be empty.", Status.BAD_REQUEST);
         }
 
-        // Validate Birthdate
         LocalDate birthDate;
         try {
             int yearD = Integer.parseInt(yearStr);
@@ -68,7 +65,6 @@ public class PassengerController {
             return new Response("Invalid birthdate: " + ex.getMessage(), Status.BAD_REQUEST);
         }
 
-        // Validate Phone Code
         int phoneCodeD;
         if (phoneCodeStr == null || phoneCodeStr.trim().isEmpty()) {
             return new Response("Phone code cannot be empty.", Status.BAD_REQUEST);
@@ -85,7 +81,6 @@ public class PassengerController {
             return new Response("Phone code must be a valid number.", Status.BAD_REQUEST);
         }
 
-        // Validate Phone
         long phoneD;
         if (phoneStr == null || phoneStr.trim().isEmpty()) {
             return new Response("Phone number cannot be empty.", Status.BAD_REQUEST);
@@ -102,7 +97,6 @@ public class PassengerController {
             return new Response("Phone number must be a valid number.", Status.BAD_REQUEST);
         }
 
-        // Uniqueness check for ID (only for new passenger registration)
         if (!isUpdate) {
             Storage storage = Storage.getInstance();
             for (Passenger p : storage.getPassengers()) {
@@ -112,7 +106,7 @@ public class PassengerController {
             }
         }
 
-        return null; // All validations passed
+        return null;
     }
 
     public static Response registerPassenger(String idStr, String firstname, String lastname, String yearStr, String monthStr, String dayStr, String phoneCodeStr, String phoneStr, String country) {
@@ -132,12 +126,11 @@ public class PassengerController {
 
             Passenger newPassenger = new Passenger(idD, firstname.trim(), lastname.trim(), birthDate, phoneCodeD, phoneD, country.trim());
             Storage storage = Storage.getInstance();
-            if (!storage.addPassenger(newPassenger)) { // Storage.addPassenger also checks for uniqueness
-                // This case might be redundant if controller validation is thorough, but good for safety
+            if (!storage.addPassenger(newPassenger)) {
                 return new Response("Failed to add passenger to storage. ID might already exist.", Status.BAD_REQUEST);
             }
             return new Response("Passenger registered successfully: " + idD, Status.CREATED);
-        } catch (Exception ex) { // Catch any unexpected error during final object creation or storage
+        } catch (Exception ex) {
             return new Response("Unexpected error registering passenger: " + ex.getMessage(), Status.INTERNAL_SERVER_ERROR);
         }
     }
@@ -152,10 +145,7 @@ public class PassengerController {
             long idD = Long.parseLong(idStr.trim());
             Storage storage = Storage.getInstance();
 
-            // Verificar si el pasajero existe ANTES de intentar actualizarlo.
-            // Esto es opcional si confías en que storage.updatePassenger devuelva false si no se encuentra.
             boolean passengerExists = false;
-            // Para esta verificación, obtener clones está bien, solo necesitamos el ID.
             for (Passenger pClone : storage.getPassengers()) {
                 if (pClone.getId() == idD) {
                     passengerExists = true;
@@ -174,15 +164,11 @@ public class PassengerController {
             int phoneCodeD = Integer.parseInt(phoneCodeStr.trim());
             long phoneD = Long.parseLong(phoneStr.trim());
 
-            // Crear un objeto Passenger que solo contenga los datos actualizados.
-            // La lista de vuelos en este objeto NO se usará si Storage actualiza campos individualmente.
             Passenger passengerWithUpdates = new Passenger(idD, firstname.trim(), lastname.trim(), birthDate, phoneCodeD, phoneD, country.trim());
 
             if (storage.updatePassenger(passengerWithUpdates)) {
                 return new Response("Passenger " + idD + " updated successfully.", Status.OK);
             } else {
-                // Esto podría ocurrir si el pasajero fue eliminado entre la verificación y la actualización,
-                // o si hay un error en la lógica de updatePassenger en Storage (aunque ahora debería encontrarlo).
                 return new Response("Failed to update passenger " + idD + ". Passenger might not exist or an internal error occurred.", Status.INTERNAL_SERVER_ERROR);
             }
 
@@ -194,7 +180,6 @@ public class PassengerController {
     }
 
     public static Response addPassengerToFlight(String passengerIdStr, String flightIdStr) {
-        // Validar Passenger ID
         long passengerId;
         if (passengerIdStr == null || passengerIdStr.trim().isEmpty()) {
             return new Response("Passenger ID cannot be empty.", Status.BAD_REQUEST);
@@ -205,19 +190,14 @@ public class PassengerController {
             return new Response("Passenger ID must be a valid number.", Status.BAD_REQUEST);
         }
 
-        // Validar Flight ID
         if (flightIdStr == null || flightIdStr.trim().isEmpty() || flightIdStr.equals("Flight")) { // "Flight" es el placeholder del JComboBox
             return new Response("Flight ID must be selected.", Status.BAD_REQUEST);
         }
 
         Storage storage = Storage.getInstance(); //
 
-        // --- INICIO DE VALIDACIONES PREVIAS (usando clones para no modificar accidentalmente) ---
-        // Estas validaciones son opcionales aquí si confías plenamente en que
-        // Storage.associatePassengerWithFlight las hará internamente.
-        // Sin embargo, hacerlas aquí puede dar mensajes de error más específicos y tempranos.
-        Passenger passengerDataForValidation = null; // Clon para validación
-        for (Passenger pClone : storage.getPassengers()) { // getPassengers() devuelve clones
+        Passenger passengerDataForValidation = null;
+        for (Passenger pClone : storage.getPassengers()) {
             if (pClone.getId() == passengerId) {
                 passengerDataForValidation = pClone;
                 break;
@@ -227,8 +207,8 @@ public class PassengerController {
             return new Response("Passenger with ID " + passengerId + " not found.", Status.NOT_FOUND);
         }
 
-        Flight flightDataForValidation = null; // Clon para validación
-        for (Flight fClone : storage.getFlights()) { // getFlights() devuelve clones
+        Flight flightDataForValidation = null;
+        for (Flight fClone : storage.getFlights()) {
             if (fClone.getId().equals(flightIdStr)) {
                 flightDataForValidation = fClone;
                 break;
@@ -238,11 +218,8 @@ public class PassengerController {
             return new Response("Flight with ID " + flightIdStr + " not found.", Status.NOT_FOUND);
         }
 
-        // Verificar si el pasajero ya está en el vuelo (usando clones para leer info)
-        // Esta verificación es más robusta si se hace en Storage.associatePassengerWithFlight
-        // sobre los objetos originales, pero aquí sirve como una primera barrera.
         boolean alreadyOnFlight = false;
-        for (Flight f : passengerDataForValidation.getFlights()) { // getFlights() de Passenger devuelve una copia de la lista de vuelos.
+        for (Flight f : passengerDataForValidation.getFlights()) {
             if (f.getId().equals(flightIdStr)) {
                 alreadyOnFlight = true;
                 break;
@@ -252,42 +229,34 @@ public class PassengerController {
             return new Response("Passenger " + passengerId + " is already on flight " + flightIdStr + ".", Status.BAD_REQUEST);
         }
 
-        // Verificar capacidad del avión (usando clon para leer info)
         if (flightDataForValidation.getPlane() != null && flightDataForValidation.getNumPassengers() >= flightDataForValidation.getPlane().getMaxCapacity()) { //
             return new Response("Flight " + flightIdStr + " is full. Cannot add more passengers.", Status.BAD_REQUEST);
         }
-        // --- FIN DE VALIDACIONES PREVIAS ---
 
-        // Pedir a Storage que realice la asociación en los objetos originales
-        // Asumimos que associatePassengerWithFlight se ha implementado en Storage
-        // y que maneja internamente la búsqueda de los objetos originales y la lógica de asociación.
         boolean associationSuccess = storage.associatePassengerWithFlight(passengerId, flightIdStr);
 
         if (associationSuccess) {
             return new Response("Passenger " + passengerId + " added to flight " + flightIdStr + " successfully.", Status.OK);
         } else {
-            // Este error podría ser porque el pasajero o vuelo no se encontró en Storage (si no se validó antes),
-            // o la asociación falló por capacidad o porque ya estaba asociado (si Storage lo verifica y retorna false).
-            // El mensaje de error de Storage.associatePassengerWithFlight podría ser más específico.
             return new Response("Failed to add passenger to flight. Please ensure IDs are correct, flight has capacity, and passenger is not already on flight.", Status.BAD_REQUEST); // O INTERNAL_SERVER_ERROR si la causa no es clara
         }
     }
 
     public static ArrayList<String> getAllPassengerIds() {
         Storage storage = Storage.getInstance();
-        ArrayList<Passenger> passengers = storage.getPassengers(); // Devuelve clones
+        ArrayList<Passenger> passengers = storage.getPassengers();
         if (passengers == null) {
             return new ArrayList<>();
         }
         return passengers.stream()
                 .map(p -> String.valueOf(p.getId()))
-                .sorted() // Opcional: ordenar los IDs
-                .collect(Collectors.toCollection(ArrayList::new)); // Específicamente a ArrayList
+                .sorted()
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     public static ArrayList<Object[]> getAllPassengersForTable() {
         Storage storage = Storage.getInstance();
-        ArrayList<Passenger> passengers = storage.getPassengers(); // Devuelve clones
+        ArrayList<Passenger> passengers = storage.getPassengers();
         if (passengers == null) {
             return new ArrayList<>();
         }
@@ -305,7 +274,7 @@ public class PassengerController {
             passenger.getCountry(),
             passenger.getNumFlights()
         })
-                .collect(Collectors.toCollection(ArrayList::new)); // Específicamente a ArrayList
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     public static ArrayList<Object[]> getFlightsForPassenger(String passengerIdStr) {
@@ -335,7 +304,7 @@ public class PassengerController {
                     flight.getDepartureDate().format(dateTimeFormatter),
                     flight.calculateArrivalDate().format(dateTimeFormatter)
                 })
-                        .collect(Collectors.toCollection(ArrayList::new)); // Específicamente a ArrayList
+                        .collect(Collectors.toCollection(ArrayList::new));
             }
         } catch (NumberFormatException e) {
             System.err.println("Invalid passenger ID for getFlightsForPassenger: " + passengerIdStr);

@@ -9,7 +9,7 @@ import airport.Core.Controller.Utils.Status;
 import airport.Core.Model.Flight;
 import airport.Core.Model.Location;
 import airport.Core.Model.Plane;
-import airport.Core.Model.Storage.Storage;
+import airport.Core.Storage.Storage;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -24,12 +24,11 @@ import java.util.stream.Collectors;
 public class FlightController {
 
     public static Response createFlight(String id, String planeId, String departureLocationId,
-            String arrivalLocationId, String scaleLocationId, // UI sends null if placeholder
+            String arrivalLocationId, String scaleLocationId,
             String departureYearStr, String departureMonthStr, String departureDayStr,
             String departureHourStr, String departureMinuteStr,
-            String hoursDurationArrivalStr, String minutesDurationArrivalStr, // Total travel time
-            String hoursDurationScaleStr, String minutesDurationScaleStr) {   // Layover time at scale
-        // Validate Flight ID
+            String hoursDurationArrivalStr, String minutesDurationArrivalStr,
+            String hoursDurationScaleStr, String minutesDurationScaleStr) {
         if (id == null || id.trim().isEmpty()) {
             return new Response("Flight ID cannot be empty.", Status.BAD_REQUEST);
         }
@@ -40,7 +39,6 @@ public class FlightController {
 
         Storage storage = Storage.getInstance();
 
-        // Validate and find Plane
         if (planeId == null || planeId.trim().isEmpty()) {
             return new Response("Plane ID must be selected.", Status.BAD_REQUEST);
         }
@@ -52,7 +50,6 @@ public class FlightController {
             return new Response("Plane with ID '" + planeId + "' not found (must be created previously).", Status.NOT_FOUND);
         }
 
-        // Validate and find Departure Location
         if (departureLocationId == null || departureLocationId.trim().isEmpty()) {
             return new Response("Departure location must be selected.", Status.BAD_REQUEST);
         }
@@ -64,7 +61,6 @@ public class FlightController {
             return new Response("Departure location with ID '" + departureLocationId + "' not found (must be created previously).", Status.NOT_FOUND);
         }
 
-        // Validate and find Arrival Location
         if (arrivalLocationId == null || arrivalLocationId.trim().isEmpty()) {
             return new Response("Arrival location must be selected.", Status.BAD_REQUEST);
         }
@@ -79,7 +75,7 @@ public class FlightController {
             return new Response("Arrival location with ID '" + arrivalLocationId + "' not found (must be created previously).", Status.NOT_FOUND);
         }
 
-        Location scaleLocationObj = null; // Renamed to avoid confusion with scaleLocationId parameter
+        Location scaleLocationObj = null;
         int parsedHoursDurationScale = 0;
         int parsedMinutesDurationScale = 0;
         boolean hasScale = scaleLocationId != null && !scaleLocationId.trim().isEmpty();
@@ -95,7 +91,6 @@ public class FlightController {
             if (scaleLocationObj == null) {
                 return new Response("Scale location with ID '" + scaleLocationId + "' not found (must be created previously).", Status.NOT_FOUND);
             }
-            // Parse and Validate Scale Duration (Layover time)
             try {
                 if (hoursDurationScaleStr == null || minutesDurationScaleStr == null) { // If scale location provided, its duration must be too
                     return new Response("Scale layover duration (hours and minutes) cannot be null if scale location is provided.", Status.BAD_REQUEST);
@@ -108,16 +103,11 @@ public class FlightController {
                 if (parsedMinutesDurationScale >= 60) {
                     return new Response("Scale layover duration minutes must be less than 60.", Status.BAD_REQUEST);
                 }
-                // A scale layover can be 00:00 (technical stop) but usually it's > 0 if it's a passenger stop.
-                // Requirement "En caso de no estar, el tiempo en horas y minutos de la escala debe ser 0"
-                // This implies if it IS present, it can be > 0.
+
             } catch (NumberFormatException ex) {
                 return new Response("Scale layover duration components must be valid numbers.", Status.BAD_REQUEST);
             }
         } else {
-            // If no scale location is provided, ensure any passed scale duration strings are effectively zero or not set.
-            // The constructor for Flight (no scale) will set scale durations to 0 anyway.
-            // This validation ensures consistency if UI erroneously sends non-zero scale durations when no scale location is chosen.
             if ((hoursDurationScaleStr != null && !hoursDurationScaleStr.trim().isEmpty() && !hoursDurationScaleStr.equals("0"))
                     || (minutesDurationScaleStr != null && !minutesDurationScaleStr.trim().isEmpty() && !minutesDurationScaleStr.equals("0"))) {
                 try {
@@ -131,10 +121,8 @@ public class FlightController {
                     return new Response("Invalid scale layover duration when no scale location is specified.", Status.BAD_REQUEST);
                 }
             }
-            // parsedHoursDurationScale and parsedMinutesDurationScale remain 0
         }
 
-        // Parse and Validate Departure DateTime
         LocalDateTime departureDateTime;
         try {
             if (departureYearStr == null || departureMonthStr == null || departureDayStr == null || departureHourStr == null || departureMinuteStr == null) {
@@ -152,7 +140,6 @@ public class FlightController {
             return new Response("Invalid departure date or time: " + ex.getMessage(), Status.BAD_REQUEST);
         }
 
-        // Parse and Validate Arrival Duration (Total Travel Time in air)
         int parsedHoursDurationArrival, parsedMinutesDurationArrival;
         try {
             if (hoursDurationArrivalStr == null || minutesDurationArrivalStr == null) {
@@ -173,7 +160,6 @@ public class FlightController {
             return new Response("Total flight travel time components must be valid numbers.", Status.BAD_REQUEST);
         }
 
-        // Check for Flight ID uniqueness
         for (Flight f : storage.getFlights()) {
             if (f.getId().equals(trimmedFlightId)) {
                 return new Response("A flight with ID '" + trimmedFlightId + "' already exists.", Status.BAD_REQUEST);
@@ -183,12 +169,10 @@ public class FlightController {
         try {
             Flight newFlight;
             if (hasScale && scaleLocationObj != null) {
-                // Pass total travel time and layover time separately
                 newFlight = new Flight(trimmedFlightId, plane, departureLocation, scaleLocationObj, arrivalLocation,
                         departureDateTime, parsedHoursDurationArrival, parsedMinutesDurationArrival,
                         parsedHoursDurationScale, parsedMinutesDurationScale);
             } else {
-                // Constructor for no scale sets its scale durations to 0
                 newFlight = new Flight(trimmedFlightId, plane, departureLocation, arrivalLocation,
                         departureDateTime, parsedHoursDurationArrival, parsedMinutesDurationArrival);
             }
@@ -231,7 +215,6 @@ public class FlightController {
         if (storage.delayFlightInStorage(flightId, hours, minutes)) {
             return new Response("Flight " + flightId + " delayed successfully by " + hours + "h " + minutes + "m.", Status.OK);
         } else {
-            // El mensaje de error específico ya se imprime desde Storage
             return new Response("Flight with ID '" + flightId + "' not found or an error occurred during delay.", Status.NOT_FOUND);
         }
     }

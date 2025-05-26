@@ -13,7 +13,7 @@ import airport.Core.Model.Flight;
 import airport.Core.Model.Location;
 import airport.Core.Model.Passenger;
 import airport.Core.Model.Plane;
-import airport.Core.Model.Storage.Storage;
+import airport.Core.Storage.Storage;
 import java.awt.Color;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

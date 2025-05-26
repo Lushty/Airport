@@ -4,7 +4,7 @@
  */
 package airport.Main;
 
-import airport.Core.Model.Storage.Storage;
+import airport.Core.Storage.Storage;
 import airport.Core.View.AirportFrame;
 import com.formdev.flatlaf.FlatDarkLaf;
 import javax.swing.UIManager;
